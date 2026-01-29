@@ -55,6 +55,9 @@
       <RouterLink to="/review" class="nav-item" active-class="nav-item-active">
         <span>Review</span>
       </RouterLink>
+      <RouterLink to="/github" class="nav-item" active-class="nav-item-active">
+        <span>GitHub</span>
+      </RouterLink>
       <RouterLink to="/settings" class="nav-item" active-class="nav-item-active">
         <span>Settings</span>
       </RouterLink>
