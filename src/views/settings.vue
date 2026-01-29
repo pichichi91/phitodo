@@ -8,13 +8,13 @@
       <section class="group">
         <h2>Appearance</h2>
         <div class="row">
-          <label>
-            Theme
-            <select v-model="theme">
-              <option value="system">System</option>
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
-            </select>
+          <label class="settings-label">
+            <span class="settings-label-text">Theme</span>
+            <CustomSelect
+              v-model="theme"
+              :options="themeOptions"
+              aria-label="Choose theme"
+            />
           </label>
         </div>
       </section>
@@ -31,6 +31,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
+import CustomSelect from "@/components/common/custom-select.vue";
 import { useUIStore } from "@/stores/uiStore";
 
 const ui = useUIStore();
@@ -39,6 +40,12 @@ const theme = computed({
   get: () => ui.theme,
   set: (value) => ui.setTheme(value)
 });
+
+const themeOptions = [
+  { value: "system", label: "System" },
+  { value: "light", label: "Light" },
+  { value: "dark", label: "Dark" }
+];
 </script>
 
 <style scoped>
@@ -46,6 +53,7 @@ const theme = computed({
   display: flex;
   flex-direction: column;
   height: 100%;
+  max-width: 50%;
   padding: 12px 16px 16px;
 }
 
@@ -78,14 +86,21 @@ const theme = computed({
   margin-bottom: 8px;
 }
 
-select {
-  margin-left: 8px;
-  padding: 2px 6px;
-  border-radius: 6px;
-  border: 1px solid rgba(55, 65, 81, 0.9);
-  background: rgba(15, 23, 42, 0.98);
-  color: #e5e7eb;
+.settings-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.settings-label-text {
+  min-width: 60px;
   font-size: 13px;
+  color: #e5e7eb;
+}
+
+.settings-label .custom-select {
+  min-width: 140px;
 }
 
 .hint {

@@ -13,7 +13,7 @@
         </div>
         <div class="meta">
           <span v-if="task.dueDate" class="pill pill-date">
-            Due {{ task.dueDate }}
+            {{ dueDateLabel }}
           </span>
           <span v-if="task.priority !== 'none'" class="pill pill-priority">
             {{ task.priority }}
@@ -25,9 +25,11 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import type { Task } from "@/domain/models";
 import { useUIStore } from "@/stores/uiStore";
 import { useTaskStore } from "@/stores/taskStore";
+import { formatDueDateLabel } from "@/utils/date-format";
 
 const props = defineProps<{
   task: Task;
@@ -35,6 +37,10 @@ const props = defineProps<{
 
 const ui = useUIStore();
 const tasks = useTaskStore();
+
+const dueDateLabel = computed(() =>
+  props.task.dueDate ? formatDueDateLabel(props.task.dueDate) : ""
+);
 
 const editTask = () => {
   ui.startTaskEdit(props.task.id);

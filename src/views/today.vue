@@ -23,9 +23,25 @@ const taskStore = useTaskStore();
 
 const todayIsoPrefix = new Date().toISOString().slice(0, 10);
 
-const tasksForToday = computed(() =>
-  taskStore.allTasks.filter((t) => t.dueDate?.startsWith(todayIsoPrefix))
-);
+const tasksForToday = computed(() => {
+  const today = todayIsoPrefix;
+  return taskStore.allTasks
+    .filter((t) => {
+      if (!t.dueDate || t.status === "completed") return false;
+      const d = t.dueDate.slice(0, 10);
+      return d <= today;
+    })
+    .sort((a, b) => {
+      const aDate = a.dueDate!.slice(0, 10);
+      const bDate = b.dueDate!.slice(0, 10);
+      const aOverdue = aDate < today;
+      const bOverdue = bDate < today;
+      if (aOverdue && !bOverdue) return -1;
+      if (!aOverdue && bOverdue) return 1;
+      if (aOverdue && bOverdue) return aDate < bDate ? -1 : 1;
+      return 0;
+    });
+});
 </script>
 
 <style scoped>
