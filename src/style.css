@@ -1,0 +1,25 @@
+html,
+body,
+#app {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+}
+
+body {
+  color: #0f172a;
+  background-color: #0b1120;
+}
+
+/* Transparent background in Tauri so rounded window corners show through */
+html.tauri,
+html.tauri body,
+html.tauri #app {
+  background: transparent;
+}
+
+.app-shell {
+  display: flex;
+  height: 100vh;
+}
