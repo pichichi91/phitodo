@@ -1,5 +1,7 @@
 import { defineStore } from "pinia";
 
+export type ShortcutModifier = "alt" | "ctrl" | "ctrlAlt" | "meta";
+
 interface UIState {
   theme: "system" | "light" | "dark";
   lastViewRoute: string;
@@ -8,6 +10,8 @@ interface UIState {
   editingTaskId: string | null;
   editingProjectId: string | null;
   searchQuery: string;
+  requestSearchFocus: number;
+  shortcutModifier: ShortcutModifier;
 }
 
 export const useUIStore = defineStore("ui", {
@@ -18,7 +22,9 @@ export const useUIStore = defineStore("ui", {
     isProjectModalOpen: false,
     editingTaskId: null,
     editingProjectId: null,
-    searchQuery: ""
+    searchQuery: "",
+    requestSearchFocus: 0,
+    shortcutModifier: "alt"
   }),
   actions: {
     setTheme(theme: UIState["theme"]) {
@@ -26,6 +32,15 @@ export const useUIStore = defineStore("ui", {
     },
     setLastViewRoute(route: string) {
       this.lastViewRoute = route;
+    },
+    focusSearch() {
+      this.requestSearchFocus = Date.now();
+    },
+    clearSearchFocusRequest() {
+      this.requestSearchFocus = 0;
+    },
+    setShortcutModifier(modifier: ShortcutModifier) {
+      this.shortcutModifier = modifier;
     },
     setSearchQuery(query: string) {
       this.searchQuery = query;

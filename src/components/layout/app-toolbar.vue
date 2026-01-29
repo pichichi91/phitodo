@@ -4,12 +4,13 @@
       <button class="pill" type="button" @click="openTaskModal">
         <span class="dot" />
         <span class="pill-label">Add task</span>
-        <span class="pill-kbd">⌘N</span>
+        <span class="pill-kbd">{{ addTaskShortcutHint }}</span>
       </button>
     </div>
     <div class="center">
       <div class="search-wrapper">
         <input
+          ref="searchInputRef"
           v-model="query"
           type="search"
           class="search"
@@ -25,10 +26,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 import { useUIStore } from "@/stores/uiStore";
 
 const syncing = ref(false);
+const searchInputRef = ref<HTMLInputElement | null>(null);
 const ui = useUIStore();
 
 const query = computed({
@@ -36,24 +38,32 @@ const query = computed({
   set: (value: string) => ui.setSearchQuery(value)
 });
 
+const addTaskShortcutHint = computed(() => {
+  const mod =
+    ui.shortcutModifier === "alt"
+      ? "Alt"
+      : ui.shortcutModifier === "ctrl"
+        ? "Ctrl"
+        : ui.shortcutModifier === "ctrlAlt"
+          ? "Ctrl+Alt"
+          : "⌘";
+  return `${mod}+N`;
+});
+
 const openTaskModal = () => {
   ui.openTaskModal();
 };
 
-const handleKeydown = (event: KeyboardEvent) => {
-  const isCmdN = (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "n";
-  if (!isCmdN) return;
-  event.preventDefault();
-  ui.openTaskModal();
-};
-
-onMounted(() => {
-  window.addEventListener("keydown", handleKeydown);
-});
-
-onBeforeUnmount(() => {
-  window.removeEventListener("keydown", handleKeydown);
-});
+watch(
+  () => ui.requestSearchFocus,
+  (value) => {
+    if (value === 0) return;
+    nextTick(() => {
+      searchInputRef.value?.focus();
+      ui.clearSearchFocusRequest();
+    });
+  }
+);
 </script>
 
 <style scoped>

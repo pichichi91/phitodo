@@ -1,5 +1,14 @@
 <template>
   <div class="list-root">
+    <div v-if="showFilter" class="filter-wrap">
+      <input
+        v-model="filterText"
+        type="search"
+        class="filter-input"
+        placeholder="Filter tasks..."
+        aria-label="Filter tasks by title or notes"
+      />
+    </div>
     <div v-if="visibleItems.length === 0" class="empty">
       {{ emptyMessage }}
     </div>
@@ -12,7 +21,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, withDefaults } from "vue";
+import { computed, ref, withDefaults } from "vue";
 import type { Task } from "@/domain/models";
 import TaskItem from "./task-item.vue";
 
@@ -22,21 +31,25 @@ const props = withDefaults(
     emptyMessage?: string;
     hideCompleted?: boolean;
     query?: string;
+    showFilter?: boolean;
   }>(),
   {
     items: () => [],
     emptyMessage: "No tasks yet.",
     hideCompleted: false,
-    query: ""
+    query: "",
+    showFilter: true
   }
 );
+
+const filterText = ref("");
 
 const filteredByCompletion = computed(() =>
   props.hideCompleted ? props.items.filter((t) => t.status !== "completed") : props.items
 );
 
 const visibleItems = computed(() => {
-  const q = props.query?.trim().toLowerCase();
+  const q = (props.query?.trim() || filterText.value.trim()).toLowerCase();
   if (!q) return filteredByCompletion.value;
   return filteredByCompletion.value.filter((t) => {
     const title = t.title.toLowerCase();
@@ -49,6 +62,30 @@ const visibleItems = computed(() => {
 <style scoped>
 .list-root {
   margin-top: 6px;
+}
+
+.filter-wrap {
+  margin-bottom: 8px;
+}
+
+.filter-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(55, 65, 81, 0.9);
+  font-size: 13px;
+  background: rgba(15, 23, 42, 0.6);
+  color: #e5e7eb;
+}
+
+.filter-input::placeholder {
+  color: #6b7280;
+}
+
+.filter-input:focus {
+  outline: none;
+  border-color: rgba(59, 130, 246, 0.6);
 }
 
 .empty {

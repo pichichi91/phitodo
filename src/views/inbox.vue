@@ -87,7 +87,6 @@
         <section class="column column-primary">
           <header class="column-header">Capture</header>
           <div class="column-body">
-            <TaskQuickAdd />
             <TaskList
               :items="inboxTasks"
               :empty-message="'Nothing in your inbox yet.'"
@@ -109,7 +108,6 @@
 <script setup lang="ts">
 import { computed, onMounted } from "vue";
 import { RouterLink } from "vue-router";
-import TaskQuickAdd from "@/components/tasks/task-quick-add.vue";
 import TaskList from "@/components/tasks/task-list.vue";
 import { useTaskStore } from "@/stores/taskStore";
 import { useGitHubStore } from "@/stores/githubStore";

@@ -142,7 +142,9 @@ const close = () => {
 };
 
 const navigateToTask = (task: Task) => {
-  if (task.projectId) {
+  if (task.status === "completed") {
+    router.push("/completed");
+  } else if (task.projectId) {
     router.push(`/projects/${task.projectId}`);
   } else {
     router.push("/inbox");

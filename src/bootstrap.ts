@@ -2,9 +2,12 @@ import { useTaskStore } from "@/stores/taskStore";
 import { useProjectStore } from "@/stores/projectStore";
 import { useTagStore } from "@/stores/tagStore";
 import { useUIStore } from "@/stores/uiStore";
+import type { ShortcutModifier } from "@/stores/uiStore";
 import type { Task, Project, Tag } from "@/domain/models";
 
 const STORAGE_KEY = "phitodo_state_v1";
+
+const VALID_SHORTCUT_MODIFIERS: ShortcutModifier[] = ["alt", "ctrl", "ctrlAlt", "meta"];
 
 interface LocalSnapshot {
   tasks: Task[];
@@ -13,6 +16,7 @@ interface LocalSnapshot {
   ui: {
     theme: "system" | "light" | "dark";
     lastViewRoute: string;
+    shortcutModifier?: ShortcutModifier;
   };
 }
 
@@ -34,6 +38,12 @@ export async function bootstrapPhase1Persistence() {
       if (snapshot.ui) {
         uiStore.setTheme(snapshot.ui.theme);
         uiStore.setLastViewRoute(snapshot.ui.lastViewRoute);
+        if (
+          snapshot.ui.shortcutModifier &&
+          VALID_SHORTCUT_MODIFIERS.includes(snapshot.ui.shortcutModifier)
+        ) {
+          uiStore.setShortcutModifier(snapshot.ui.shortcutModifier);
+        }
       }
     } catch (e) {
       // If parsing fails, ignore and start fresh.
@@ -48,7 +58,8 @@ export async function bootstrapPhase1Persistence() {
       tags: tagStore.allTags,
       ui: {
         theme: uiStore.theme,
-        lastViewRoute: uiStore.lastViewRoute
+        lastViewRoute: uiStore.lastViewRoute,
+        shortcutModifier: uiStore.shortcutModifier
       }
     };
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));

@@ -17,6 +17,16 @@
             />
           </label>
         </div>
+        <div class="row">
+          <label class="settings-label">
+            <span class="settings-label-text">Shortcut modifier</span>
+            <CustomSelect
+              v-model="shortcutModifier"
+              :options="shortcutModifierOptions"
+              aria-label="Choose shortcut modifier"
+            />
+          </label>
+        </div>
       </section>
       <section class="group">
         <h2>Data</h2>
@@ -126,12 +136,16 @@ import { computed, ref, watch } from "vue";
 import AppModal from "@/components/common/app-modal.vue";
 import CustomSelect from "@/components/common/custom-select.vue";
 import { useUIStore } from "@/stores/uiStore";
+import type { ShortcutModifier } from "@/stores/uiStore";
 import { useGitHubStore } from "@/stores/githubStore";
 
 const ui = useUIStore();
 const github = useGitHubStore();
 
 const showTokenHelp = ref(false);
+
+const isTauri =
+  typeof window !== "undefined" && !!(window as Window & { __TAURI__?: unknown }).__TAURI__;
 
 const theme = computed({
   get: () => ui.theme,
@@ -143,6 +157,21 @@ const themeOptions = [
   { value: "light", label: "Light" },
   { value: "dark", label: "Dark" }
 ];
+
+const shortcutModifier = computed({
+  get: () => ui.shortcutModifier,
+  set: (value: ShortcutModifier) => ui.setShortcutModifier(value)
+});
+
+const shortcutModifierOptions = computed(() => {
+  const options: { value: ShortcutModifier; label: string }[] = [
+    { value: "alt", label: "Alt" },
+    { value: "ctrl", label: "Ctrl" },
+    { value: "ctrlAlt", label: "Ctrl+Alt" },
+    { value: "meta", label: "Command" }
+  ];
+  return isTauri ? options : options.filter((o) => o.value !== "meta");
+});
 
 const tokenInput = ref(github.token ?? "");
 watch(

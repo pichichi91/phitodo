@@ -12,18 +12,27 @@
       <div class="section-title">Today</div>
       <RouterLink to="/inbox" class="nav-item" active-class="nav-item-active">
         <span>Inbox</span>
+        <span class="nav-kbd">{{ shortcutHint(1) }}</span>
       </RouterLink>
       <RouterLink to="/today" class="nav-item" active-class="nav-item-active">
         <span>Today</span>
+        <span class="nav-kbd">{{ shortcutHint(2) }}</span>
       </RouterLink>
       <RouterLink to="/upcoming" class="nav-item" active-class="nav-item-active">
         <span>Upcoming</span>
+        <span class="nav-kbd">{{ shortcutHint(3) }}</span>
       </RouterLink>
       <RouterLink to="/anytime" class="nav-item" active-class="nav-item-active">
         <span>Anytime</span>
+        <span class="nav-kbd">{{ shortcutHint(4) }}</span>
+      </RouterLink>
+      <RouterLink to="/someday" class="nav-item" active-class="nav-item-active">
+        <span>Someday</span>
+        <span class="nav-kbd">{{ shortcutHint(5) }}</span>
       </RouterLink>
       <RouterLink to="/completed" class="nav-item" active-class="nav-item-active">
         <span>Completed</span>
+        <span class="nav-kbd">{{ shortcutHint(6) }}</span>
       </RouterLink>
     </nav>
 
@@ -51,12 +60,15 @@
     <nav class="sidebar-section sidebar-footer">
       <RouterLink to="/review" class="nav-item" active-class="nav-item-active">
         <span>Review</span>
+        <span class="nav-kbd">{{ shortcutHint(7) }}</span>
       </RouterLink>
       <RouterLink to="/github" class="nav-item" active-class="nav-item-active">
         <span>GitHub</span>
+        <span class="nav-kbd">{{ shortcutHint(8) }}</span>
       </RouterLink>
       <RouterLink to="/settings" class="nav-item" active-class="nav-item-active">
         <span>Settings</span>
+        <span class="nav-kbd">{{ shortcutHint(9) }}</span>
       </RouterLink>
     </nav>
   </aside>
@@ -70,6 +82,25 @@ import { useUIStore } from "@/stores/uiStore";
 
 const projectStore = useProjectStore();
 const ui = useUIStore();
+
+const modifierLabel = computed(() => {
+  switch (ui.shortcutModifier) {
+    case "alt":
+      return "Alt";
+    case "ctrl":
+      return "Ctrl";
+    case "ctrlAlt":
+      return "Ctrl+Alt";
+    case "meta":
+      return "⌘";
+    default:
+      return "Alt";
+  }
+});
+
+function shortcutHint(num: number): string {
+  return `${modifierLabel.value}+${num}`;
+}
 
 const projects = computed(() =>
   [...projectStore.allProjects].sort((a, b) => a.orderIndex - b.orderIndex)
@@ -146,7 +177,10 @@ const openProjectModal = () => {
 }
 
 .nav-item {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   padding: 6px 8px;
   margin: 1px 0;
   border-radius: 8px;
@@ -160,8 +194,17 @@ const openProjectModal = () => {
   background: rgba(148, 163, 184, 0.18);
 }
 
-.nav-item span {
+.nav-item span:first-child {
   display: block;
+}
+
+.nav-kbd {
+  flex-shrink: 0;
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  font-size: 10px;
+  color: #9ca3af;
 }
 
 .project-link {

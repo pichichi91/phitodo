@@ -17,7 +17,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, onBeforeUnmount, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import { RouterView } from "vue-router";
 import AppSidebar from "./app-sidebar.vue";
 import AppToolbar from "./app-toolbar.vue";
@@ -27,8 +28,94 @@ import ProjectCreateModal from "@/components/projects/project-create-modal.vue";
 import SearchModal from "@/components/common/search-modal.vue";
 import { useUIStore } from "@/stores/uiStore";
 
+const router = useRouter();
 const ui = useUIStore();
-const isTauri = computed(() => typeof window !== "undefined" && !!(window as any).__TAURI__);
+const isTauri = computed(
+  () => typeof window !== "undefined" && !!(window as Window & { __TAURI__?: unknown }).__TAURI__
+);
+
+const NAV_ROUTES: Record<string, string> = {
+  "1": "/inbox",
+  "2": "/today",
+  "3": "/upcoming",
+  "4": "/anytime",
+  "5": "/someday",
+  "6": "/completed",
+  "7": "/review",
+  "8": "/github",
+  "9": "/settings"
+};
+
+function isEditableTarget(target: EventTarget | null): boolean {
+  if (!target || !(target instanceof HTMLElement)) return false;
+  const tag = (target as HTMLElement).tagName;
+  if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;
+  return (target as HTMLElement).contentEditable === "true";
+}
+
+function isSearchShortcutKey(key: string): boolean {
+  const k = key.toLowerCase();
+  return k === "k" || k === "/";
+}
+
+function isModifierActive(modifier: string, event: KeyboardEvent): boolean {
+  const tauri = typeof window !== "undefined" && !!(window as Window & { __TAURI__?: unknown }).__TAURI__;
+  switch (modifier) {
+    case "alt":
+      return event.altKey;
+    case "ctrl":
+      return event.ctrlKey;
+    case "ctrlAlt":
+      return event.ctrlKey && event.altKey;
+    case "meta":
+      return tauri && event.metaKey;
+    default:
+      return false;
+  }
+}
+
+function handleShortcuts(event: KeyboardEvent): void {
+  const target = event.target;
+  const key = event.key.toLowerCase();
+
+  if (isEditableTarget(target) && !isSearchShortcutKey(key)) {
+    return;
+  }
+
+  if (!isModifierActive(ui.shortcutModifier, event)) {
+    return;
+  }
+
+  if (isSearchShortcutKey(key)) {
+    event.preventDefault();
+    ui.focusSearch();
+    return;
+  }
+
+  if (key === "n") {
+    event.preventDefault();
+    if (event.shiftKey) {
+      ui.openProjectModal();
+    } else {
+      ui.openTaskModal();
+    }
+    return;
+  }
+
+  const route = NAV_ROUTES[key];
+  if (route) {
+    event.preventDefault();
+    router.push(route);
+  }
+}
+
+onMounted(() => {
+  window.addEventListener("keydown", handleShortcuts);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("keydown", handleShortcuts);
+});
 </script>
 
 <style scoped>
