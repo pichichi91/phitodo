@@ -23,3 +23,12 @@ html.tauri #app {
   display: flex;
   height: 100vh;
 }
+
+/* Hide scrollbar on scrollable view main areas, keep scroll behaviour */
+.view-main {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.view-main::-webkit-scrollbar {
+  display: none;
+}

@@ -48,7 +48,8 @@ const tasksForToday = computed(() => {
 .view-root {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   padding: 12px 16px 0;
 }
 
@@ -66,5 +67,9 @@ const tasksForToday = computed(() => {
 
 .view-main {
   margin-top: 12px;
+  padding-bottom: 24px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 </style>

@@ -9,16 +9,6 @@
         <h2>Appearance</h2>
         <div class="row">
           <label class="settings-label">
-            <span class="settings-label-text">Theme</span>
-            <CustomSelect
-              v-model="theme"
-              :options="themeOptions"
-              aria-label="Choose theme"
-            />
-          </label>
-        </div>
-        <div class="row">
-          <label class="settings-label">
             <span class="settings-label-text">Shortcut modifier</span>
             <CustomSelect
               v-model="shortcutModifier"
@@ -27,13 +17,6 @@
             />
           </label>
         </div>
-      </section>
-      <section class="group">
-        <h2>Data</h2>
-        <p class="hint">
-          In the browser, your data is stored in this browser only.
-          In the macOS app, your data will be stored in a local SQLite database and synced via iCloud later.
-        </p>
       </section>
       <section class="group">
         <h2>GitHub</h2>
@@ -178,17 +161,6 @@ const showTokenHelp = ref(false);
 const isTauri =
   typeof window !== "undefined" && !!(window as Window & { __TAURI__?: unknown }).__TAURI__;
 
-const theme = computed({
-  get: () => ui.theme,
-  set: (value) => ui.setTheme(value)
-});
-
-const themeOptions = [
-  { value: "system", label: "System" },
-  { value: "light", label: "Light" },
-  { value: "dark", label: "Dark" }
-];
-
 const shortcutModifier = computed({
   get: () => ui.shortcutModifier,
   set: (value: ShortcutModifier) => ui.setShortcutModifier(value)
@@ -270,9 +242,10 @@ async function openExternalLink(e: MouseEvent, url: string) {
 .view-root {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   max-width: 50%;
-  padding: 12px 16px 16px;
+  padding: 12px 16px 0;
 }
 
 .view-header h1 {
@@ -289,6 +262,10 @@ async function openExternalLink(e: MouseEvent, url: string) {
 
 .view-main {
   margin-top: 12px;
+  padding-bottom: 24px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .group {

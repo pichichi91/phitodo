@@ -72,3 +72,15 @@ export async function fetchReviewRequestedPRs(
   const items = data.items ?? [];
   return items.map(normalizeItem);
 }
+
+export async function fetchMyOpenPRs(
+  token: string,
+  signal?: AbortSignal
+): Promise<GitHubIssueItem[]> {
+  const q = encodeURIComponent("author:@me is:open is:pr");
+  const url = `${GITHUB_API}/search/issues?q=${q}&per_page=100`;
+  const res = await fetchWithAuth(url, token, signal);
+  const data = (await res.json()) as { items: GitHubIssueItem[] };
+  const items = data.items ?? [];
+  return items.map(normalizeItem);
+}

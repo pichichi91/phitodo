@@ -49,7 +49,8 @@ const summary = computed(() =>
 .view-root {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   padding: 12px 16px 0;
 }
 
@@ -70,6 +71,10 @@ const summary = computed(() =>
   grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
   gap: 14px;
   margin-top: 12px;
+  padding-bottom: 24px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .column {

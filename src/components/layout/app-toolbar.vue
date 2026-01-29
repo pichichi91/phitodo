@@ -18,10 +18,6 @@
         />
       </div>
     </div>
-    <div class="right">
-      <span class="status-dot" :class="{ 'status-dot-syncing': syncing }" />
-      <span class="status-label">{{ syncing ? "Syncing…" : "Up to date" }}</span>
-    </div>
   </header>
 </template>
 
@@ -29,7 +25,6 @@
 import { computed, nextTick, ref, watch } from "vue";
 import { useUIStore } from "@/stores/uiStore";
 
-const syncing = ref(false);
 const searchInputRef = ref<HTMLInputElement | null>(null);
 const ui = useUIStore();
 
@@ -78,8 +73,7 @@ watch(
 }
 
 .left,
-.center,
-.right {
+.center {
   display: flex;
   align-items: center;
 }
@@ -98,13 +92,6 @@ watch(
 .search-wrapper {
   width: 100%;
   max-width: 800px;
-}
-
-.right {
-  flex: 0 0 auto;
-  font-size: 11px;
-  color: #9ca3af;
-  gap: 6px;
 }
 
 .pill {
@@ -161,16 +148,5 @@ watch(
 .search:focus {
   outline: none;
   border-color: rgba(59, 130, 246, 0.9);
-}
-
-.status-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: #22c55e;
-}
-
-.status-dot-syncing {
-  background: #f59e0b;
 }
 </style>

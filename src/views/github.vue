@@ -5,17 +5,25 @@
         <h1>GitHub</h1>
         <p>Assigned issues and PRs awaiting your review.</p>
       </div>
-      <button
-        v-if="github.token"
-        type="button"
-        class="btn-refresh"
-        :class="{ 'btn-refresh--loading': github.loading }"
-        :disabled="github.loading"
-        @click="github.fetchAll()"
-      >
-        <span v-if="github.loading" class="btn-refresh-text">Loading…</span>
-        <span v-else class="btn-refresh-text">Refresh</span>
-      </button>
+      <div v-if="github.token" class="header-actions">
+        <input
+          v-model.trim="searchQuery"
+          type="search"
+          class="search-input"
+          placeholder="Search issues…"
+          aria-label="Search issues and PRs"
+        />
+        <button
+          type="button"
+          class="btn-refresh"
+          :class="{ 'btn-refresh--loading': github.loading }"
+          :disabled="github.loading"
+          @click="github.fetchAll()"
+        >
+          <span v-if="github.loading" class="btn-refresh-text">Loading…</span>
+          <span v-else class="btn-refresh-text">Refresh</span>
+        </button>
+      </div>
     </header>
     <main class="view-main">
       <template v-if="!github.token">
@@ -31,11 +39,11 @@
         </p>
         <template v-else>
           <div class="columns-row">
-            <section class="column" :class="{ 'column--minified': !github.filteredReviewRequestedPRs.length }">
+            <section class="column" :class="{ 'column--minified': !searchReviewPRs.length }">
               <header class="column-header">Review requested</header>
               <div class="column-body">
-                <ul v-if="github.filteredReviewRequestedPRs.length" class="issue-list">
-                  <li v-for="item in github.filteredReviewRequestedPRs" :key="item.id" class="issue-row">
+                <ul v-if="searchReviewPRs.length" class="issue-list">
+                  <li v-for="item in searchReviewPRs" :key="item.id" class="issue-row">
                     <a :href="item.html_url" target="_blank" rel="noopener noreferrer" class="issue-link">
                       <span class="issue-repo">{{ item.repository?.full_name ?? "Unknown" }}</span>
                       <span class="issue-num">#{{ item.number }}</span>
@@ -46,11 +54,26 @@
                 <div v-else class="empty">No PRs awaiting review.</div>
               </div>
             </section>
+            <section class="column" :class="{ 'column--minified': !searchMyOpenPRs.length }">
+              <header class="column-header">My open PRs</header>
+              <div class="column-body">
+                <ul v-if="searchMyOpenPRs.length" class="issue-list">
+                  <li v-for="item in searchMyOpenPRs" :key="item.id" class="issue-row">
+                    <a :href="item.html_url" target="_blank" rel="noopener noreferrer" class="issue-link">
+                      <span class="issue-repo">{{ item.repository?.full_name ?? "Unknown" }}</span>
+                      <span class="issue-num">#{{ item.number }}</span>
+                      <span class="issue-title">{{ item.title }}</span>
+                    </a>
+                  </li>
+                </ul>
+                <div v-else class="empty">No open PRs by you.</div>
+              </div>
+            </section>
             <section class="column">
               <header class="column-header">Assigned to you</header>
               <div class="column-body">
-                <ul v-if="github.filteredAssignedIssues.length" class="issue-list">
-                  <li v-for="item in github.filteredAssignedIssues" :key="item.id" class="issue-row">
+                <ul v-if="searchAssignedIssues.length" class="issue-list">
+                  <li v-for="item in searchAssignedIssues" :key="item.id" class="issue-row">
                     <a :href="item.html_url" target="_blank" rel="noopener noreferrer" class="issue-link">
                       <span class="issue-repo">{{ item.repository?.full_name ?? "Unknown" }}</span>
                       <span class="issue-num">#{{ item.number }}</span>
@@ -69,11 +92,48 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { RouterLink } from "vue-router";
+import type { GitHubIssueItem } from "@/domain/services/github-service";
 import { useGitHubStore } from "@/stores/githubStore";
 
 const github = useGitHubStore();
+const searchQuery = ref("");
+
+function matchesSearch(item: GitHubIssueItem, q: string): boolean {
+  if (!q) return true;
+  const lower = q.toLowerCase();
+  const title = (item.title ?? "").toLowerCase();
+  const repo = (item.repository?.full_name ?? "").toLowerCase();
+  const num = String(item.number);
+  return (
+    title.includes(lower) ||
+    repo.includes(lower) ||
+    num.includes(lower) ||
+    (`#${num}`).includes(lower)
+  );
+}
+
+const searchAssignedIssues = computed(() => {
+  const q = searchQuery.value;
+  const list = github.filteredAssignedIssues;
+  if (!q) return list;
+  return list.filter((item) => matchesSearch(item, q));
+});
+
+const searchReviewPRs = computed(() => {
+  const q = searchQuery.value;
+  const list = github.filteredReviewRequestedPRs;
+  if (!q) return list;
+  return list.filter((item) => matchesSearch(item, q));
+});
+
+const searchMyOpenPRs = computed(() => {
+  const q = searchQuery.value;
+  const list = github.filteredMyOpenPRs;
+  if (!q) return list;
+  return list.filter((item) => matchesSearch(item, q));
+});
 
 onMounted(() => {
   if (github.token) github.fetchAll();
@@ -84,7 +144,8 @@ onMounted(() => {
 .view-root {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   padding: 12px 16px 0;
 }
 
@@ -94,6 +155,31 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.search-input {
+  min-width: 160px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(55, 65, 81, 0.9);
+  background: rgba(15, 23, 42, 0.98);
+  color: #e5e7eb;
+  font-size: 13px;
+}
+
+.search-input::placeholder {
+  color: #6b7280;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: rgba(59, 130, 246, 0.5);
 }
 
 .view-header-text h1 {
@@ -110,6 +196,10 @@ onMounted(() => {
 
 .view-main {
   margin-top: 12px;
+  padding-bottom: 24px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .columns-row {
@@ -118,12 +208,11 @@ onMounted(() => {
   gap: 14px;
 }
 
-.columns-row .column:first-child,
-.columns-row .column:last-child {
+.columns-row .column {
   min-width: 0;
 }
 
-.columns-row .column:first-child.column--minified {
+.columns-row .column.column--minified {
   flex: 0 0 auto;
 }
 

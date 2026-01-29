@@ -355,7 +355,8 @@ onMounted(() => {
 .view-root {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   padding: 12px 16px 0;
 }
 
@@ -424,6 +425,7 @@ onMounted(() => {
   flex: 1;
   min-height: 0;
   margin-top: 12px;
+  padding-bottom: 24px;
   overflow-y: auto;
 }
 

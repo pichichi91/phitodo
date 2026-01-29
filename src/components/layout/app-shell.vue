@@ -39,10 +39,10 @@ const NAV_ROUTES: Record<string, string> = {
   "2": "/today",
   "3": "/upcoming",
   "4": "/anytime",
-  "5": "/someday",
-  "6": "/completed",
-  "7": "/review",
-  "8": "/github",
+  "5": "/completed",
+  "6": "/review",
+  "7": "/github",
+  "8": "/toggl",
   "9": "/settings"
 };
 
@@ -105,16 +105,17 @@ function handleShortcuts(event: KeyboardEvent): void {
   const route = NAV_ROUTES[key];
   if (route) {
     event.preventDefault();
+    event.stopPropagation();
     router.push(route);
   }
 }
 
 onMounted(() => {
-  window.addEventListener("keydown", handleShortcuts);
+  window.addEventListener("keydown", handleShortcuts, true);
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener("keydown", handleShortcuts);
+  window.removeEventListener("keydown", handleShortcuts, true);
 });
 </script>
 

@@ -26,13 +26,9 @@
         <span>Anytime</span>
         <span class="nav-kbd">{{ shortcutHint(4) }}</span>
       </RouterLink>
-      <RouterLink to="/someday" class="nav-item" active-class="nav-item-active">
-        <span>Someday</span>
-        <span class="nav-kbd">{{ shortcutHint(5) }}</span>
-      </RouterLink>
       <RouterLink to="/completed" class="nav-item" active-class="nav-item-active">
         <span>Completed</span>
-        <span class="nav-kbd">{{ shortcutHint(6) }}</span>
+        <span class="nav-kbd">{{ shortcutHint(5) }}</span>
       </RouterLink>
     </nav>
 
@@ -60,19 +56,19 @@
     <nav class="sidebar-section sidebar-footer">
       <RouterLink to="/review" class="nav-item" active-class="nav-item-active">
         <span>Review</span>
-        <span class="nav-kbd">{{ shortcutHint(7) }}</span>
+        <span class="nav-kbd">{{ shortcutHint(6) }}</span>
       </RouterLink>
       <RouterLink to="/github" class="nav-item" active-class="nav-item-active">
         <span>GitHub</span>
-        <span class="nav-kbd">{{ shortcutHint(8) }}</span>
+        <span class="nav-kbd">{{ shortcutHint(7) }}</span>
       </RouterLink>
       <RouterLink to="/toggl" class="nav-item" active-class="nav-item-active">
         <span>Toggl</span>
-        <span class="nav-kbd">{{ shortcutHint(9) }}</span>
+        <span class="nav-kbd">{{ shortcutHint(8) }}</span>
       </RouterLink>
       <RouterLink to="/settings" class="nav-item" active-class="nav-item-active">
         <span>Settings</span>
-        <span class="nav-kbd">{{ shortcutHint(10) }}</span>
+        <span class="nav-kbd">{{ shortcutHint(9) }}</span>
       </RouterLink>
     </nav>
   </aside>

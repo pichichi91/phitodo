@@ -124,24 +124,16 @@
         </div>
       </section>
       <StandupReportModal v-if="showStandupModal" @close="showStandupModal = false" />
-      <div class="content-grid">
-        <section class="column column-primary">
-          <header class="column-header">Capture</header>
-          <div class="column-body">
-            <TaskList
-              :items="inboxTasks"
-              :empty-message="'Nothing in your inbox yet.'"
-              :hide-completed="true"
-            />
-          </div>
-        </section>
-        <section class="column column-secondary">
-          <header class="column-header">Hint</header>
-          <div class="column-body hint">
-            Inbox is the landing zone. Capture first, organize later into projects and tags.
-          </div>
-        </section>
-      </div>
+      <section class="column column-primary">
+        <header class="column-header">Capture</header>
+        <div class="column-body">
+          <TaskList
+            :items="inboxTasks"
+            :empty-message="'Nothing in your inbox yet.'"
+            :hide-completed="true"
+          />
+        </div>
+      </section>
     </main>
   </div>
 </template>
@@ -230,7 +222,7 @@ onMounted(() => {
   flex-direction: column;
   gap: 14px;
   margin-top: 12px;
-  padding-bottom: 24px;
+  padding-bottom: 14px;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
@@ -391,16 +383,9 @@ onMounted(() => {
   color: #60a5fa;
 }
 
-.content-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 6fr) minmax(0, 2fr);
-  gap: 14px;
+.column-primary {
   flex: 1;
   min-height: 0;
-}
-
-.column-secondary {
-  max-width: 360px;
 }
 
 .column {
@@ -425,12 +410,6 @@ onMounted(() => {
   padding: 10px 11px 12px;
   overflow: auto;
 }
-
-.hint {
-  font-size: 12px;
-  color: #9ca3af;
-}
-
 
 .github-connect {
   font-size: 12px;

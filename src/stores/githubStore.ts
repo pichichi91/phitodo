@@ -1,6 +1,10 @@
 import { defineStore } from "pinia";
 import type { GitHubIssueItem } from "@/domain/services/github-service";
-import { fetchAssignedIssues, fetchReviewRequestedPRs } from "@/domain/services/github-service";
+import {
+  fetchAssignedIssues,
+  fetchMyOpenPRs,
+  fetchReviewRequestedPRs
+} from "@/domain/services/github-service";
 
 const STORAGE_KEY = "phitodo_github_token";
 const REPOS_STORAGE_KEY = "phitodo_github_repos";
@@ -27,6 +31,7 @@ interface GitHubState {
   allowedRepos: string[];
   assignedIssues: GitHubIssueItem[];
   reviewRequestedPRs: GitHubIssueItem[];
+  myOpenPRs: GitHubIssueItem[];
   loading: boolean;
   error: string | null;
 }
@@ -51,6 +56,7 @@ export const useGitHubStore = defineStore("github", {
     allowedRepos: loadAllowedRepos(),
     assignedIssues: [],
     reviewRequestedPRs: [],
+    myOpenPRs: [],
     loading: false,
     error: null
   }),
@@ -60,6 +66,9 @@ export const useGitHubStore = defineStore("github", {
     },
     filteredReviewRequestedPRs(state): GitHubIssueItem[] {
       return state.reviewRequestedPRs.filter((item) => repoMatches(item, state.allowedRepos));
+    },
+    filteredMyOpenPRs(state): GitHubIssueItem[] {
+      return state.myOpenPRs.filter((item) => repoMatches(item, state.allowedRepos));
     }
   },
   actions: {
@@ -91,13 +100,15 @@ export const useGitHubStore = defineStore("github", {
       const controller = new AbortController();
       const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
       try {
-        const [assigned, prs] = await Promise.all([
+        const [assigned, reviewPRs, myPRs] = await Promise.all([
           fetchAssignedIssues(this.token!, controller.signal),
-          fetchReviewRequestedPRs(this.token!, controller.signal)
+          fetchReviewRequestedPRs(this.token!, controller.signal),
+          fetchMyOpenPRs(this.token!, controller.signal)
         ]);
         window.clearTimeout(timeoutId);
         this.assignedIssues = assigned;
-        this.reviewRequestedPRs = prs;
+        this.reviewRequestedPRs = reviewPRs;
+        this.myOpenPRs = myPRs;
       } catch (e) {
         if (e instanceof Error) {
           this.error = e.name === "AbortError" ? "Request timed out. Try again." : e.message;
