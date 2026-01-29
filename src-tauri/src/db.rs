@@ -1,5 +1,5 @@
-use rusqlite::{Connection, Result};
 use rusqlite::OptionalExtension;
+use rusqlite::{Connection, Result};
 
 pub fn init_db(conn: &Connection) -> Result<()> {
     conn.execute_batch(
@@ -91,9 +91,7 @@ pub fn get_db_connection(path: &str) -> Result<Connection> {
 pub fn get_current_version(conn: &Connection) -> Result<i64> {
     let mut stmt = conn.prepare("SELECT value FROM metadata WHERE key = 'version'")?;
     let version: Option<String> = stmt.query_row([], |row| row.get(0)).optional()?;
-    Ok(version
-        .and_then(|v| v.parse::<i64>().ok())
-        .unwrap_or(0))
+    Ok(version.and_then(|v| v.parse::<i64>().ok()).unwrap_or(0))
 }
 
 pub fn set_version(conn: &Connection, version: i64) -> Result<()> {

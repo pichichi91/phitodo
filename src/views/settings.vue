@@ -29,7 +29,12 @@
         <h2>GitHub</h2>
         <p class="hint">
           View your assigned issues and PRs awaiting review. Create a token with <code>repo</code> and <code>read:user</code> scopes.
-          <a href="https://github.com/settings/tokens" target="_blank" rel="noopener noreferrer">Create token</a>
+          <a
+            href="https://github.com/settings/tokens"
+            target="_blank"
+            rel="noopener noreferrer"
+            @click="openExternalLink($event, 'https://github.com/settings/tokens')"
+          >Create token</a>
           <button type="button" class="link-button" @click="showTokenHelp = true">Get help</button>
         </p>
         <div class="row">
@@ -74,7 +79,12 @@
         <ol class="token-help-steps">
           <li>
             <strong>Open token settings</strong><br />
-            Go to <a href="https://github.com/settings/tokens" target="_blank" rel="noopener noreferrer">github.com/settings/tokens</a>
+            Go to <a
+              href="https://github.com/settings/tokens"
+              target="_blank"
+              rel="noopener noreferrer"
+              @click="openExternalLink($event, 'https://github.com/settings/tokens')"
+            >github.com/settings/tokens</a>
             (or GitHub → Settings → Developer settings → Personal access tokens).
           </li>
           <li>
@@ -167,6 +177,14 @@ function saveRepos() {
     .map((s) => s.trim())
     .filter(Boolean);
   github.setAllowedRepos(lines);
+}
+
+async function openExternalLink(e: MouseEvent, url: string) {
+  if (typeof window !== "undefined" && (window as Window & { __TAURI__?: unknown }).__TAURI__) {
+    e.preventDefault();
+    const { openUrl } = await import("@tauri-apps/plugin-opener");
+    await openUrl(url);
+  }
 }
 </script>
 

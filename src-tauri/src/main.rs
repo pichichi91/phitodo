@@ -96,7 +96,8 @@ fn import_backup(_data: Vec<u8>) -> Result<(), String> {
 
 #[tauri::command]
 fn icloud_sync_pull() -> Result<sync::StateSnapshot, String> {
-    sync::read_snapshot_from_icloud().map_err(|e| e.to_string())?
+    sync::read_snapshot_from_icloud()
+        .map_err(|e| e.to_string())?
         .ok_or_else(|| "No snapshot".to_string())
 }
 
@@ -107,6 +108,7 @@ fn icloud_sync_push(snapshot: sync::StateSnapshot) -> Result<(), String> {
 
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_opener::init())
         .setup(|app| {
             #[cfg(target_os = "macos")]
             if let Some(window) = app.get_webview_window("main") {
