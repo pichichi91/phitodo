@@ -1,8 +1,21 @@
 <template>
   <div class="view-root">
     <header class="view-header">
-      <h1>GitHub</h1>
-      <p>Assigned issues and PRs awaiting your review.</p>
+      <div class="view-header-text">
+        <h1>GitHub</h1>
+        <p>Assigned issues and PRs awaiting your review.</p>
+      </div>
+      <button
+        v-if="github.token"
+        type="button"
+        class="btn-refresh"
+        :class="{ 'btn-refresh--loading': github.loading }"
+        :disabled="github.loading"
+        @click="github.fetchAll()"
+      >
+        <span v-if="github.loading" class="btn-refresh-text">Loading…</span>
+        <span v-else class="btn-refresh-text">Refresh</span>
+      </button>
     </header>
     <main class="view-main">
       <template v-if="!github.token">
@@ -11,45 +24,44 @@
         </p>
       </template>
       <template v-else>
-        <div class="header-actions">
-          <button type="button" class="btn-refresh" @click="github.fetchAll()">Refresh</button>
-        </div>
         <div v-if="github.loading" class="loading">Loading…</div>
         <p v-else-if="github.error" class="error">
           {{ github.error }}
           <RouterLink to="/settings">Check Settings</RouterLink>
         </p>
         <template v-else>
-          <section class="column">
-            <header class="column-header">Assigned to you</header>
-            <div class="column-body">
-              <ul v-if="github.filteredAssignedIssues.length" class="issue-list">
-                <li v-for="item in github.filteredAssignedIssues" :key="item.id" class="issue-row">
-                  <a :href="item.html_url" target="_blank" rel="noopener noreferrer" class="issue-link">
-                    <span class="issue-repo">{{ item.repository?.full_name ?? "Unknown" }}</span>
-                    <span class="issue-num">#{{ item.number }}</span>
-                    <span class="issue-title">{{ item.title }}</span>
-                  </a>
-                </li>
-              </ul>
-              <div v-else class="empty">No assigned issues.</div>
-            </div>
-          </section>
-          <section class="column">
-            <header class="column-header">Review requested</header>
-            <div class="column-body">
-              <ul v-if="github.filteredReviewRequestedPRs.length" class="issue-list">
-                <li v-for="item in github.filteredReviewRequestedPRs" :key="item.id" class="issue-row">
-                  <a :href="item.html_url" target="_blank" rel="noopener noreferrer" class="issue-link">
-                    <span class="issue-repo">{{ item.repository?.full_name ?? "Unknown" }}</span>
-                    <span class="issue-num">#{{ item.number }}</span>
-                    <span class="issue-title">{{ item.title }}</span>
-                  </a>
-                </li>
-              </ul>
-              <div v-else class="empty">No PRs awaiting review.</div>
-            </div>
-          </section>
+          <div class="columns-row">
+            <section class="column" :class="{ 'column--minified': !github.filteredReviewRequestedPRs.length }">
+              <header class="column-header">Review requested</header>
+              <div class="column-body">
+                <ul v-if="github.filteredReviewRequestedPRs.length" class="issue-list">
+                  <li v-for="item in github.filteredReviewRequestedPRs" :key="item.id" class="issue-row">
+                    <a :href="item.html_url" target="_blank" rel="noopener noreferrer" class="issue-link">
+                      <span class="issue-repo">{{ item.repository?.full_name ?? "Unknown" }}</span>
+                      <span class="issue-num">#{{ item.number }}</span>
+                      <span class="issue-title">{{ item.title }}</span>
+                    </a>
+                  </li>
+                </ul>
+                <div v-else class="empty">No PRs awaiting review.</div>
+              </div>
+            </section>
+            <section class="column">
+              <header class="column-header">Assigned to you</header>
+              <div class="column-body">
+                <ul v-if="github.filteredAssignedIssues.length" class="issue-list">
+                  <li v-for="item in github.filteredAssignedIssues" :key="item.id" class="issue-row">
+                    <a :href="item.html_url" target="_blank" rel="noopener noreferrer" class="issue-link">
+                      <span class="issue-repo">{{ item.repository?.full_name ?? "Unknown" }}</span>
+                      <span class="issue-num">#{{ item.number }}</span>
+                      <span class="issue-title">{{ item.title }}</span>
+                    </a>
+                  </li>
+                </ul>
+                <div v-else class="empty">No assigned issues.</div>
+              </div>
+            </section>
+          </div>
         </template>
       </template>
     </main>
@@ -76,23 +88,43 @@ onMounted(() => {
   padding: 12px 16px 0;
 }
 
-.view-header h1 {
+.view-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.view-header-text h1 {
   margin: 0;
   font-size: 20px;
   font-weight: 600;
 }
 
-.view-header p {
+.view-header-text p {
   margin: 2px 0 0;
   font-size: 12px;
   color: #9ca3af;
 }
 
 .view-main {
-  display: grid;
-  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
-  gap: 14px;
   margin-top: 12px;
+}
+
+.columns-row {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.columns-row .column:first-child,
+.columns-row .column:last-child {
+  min-width: 0;
+}
+
+.columns-row .column:first-child.column--minified {
+  flex: 0 0 auto;
 }
 
 .connect-hint {
@@ -102,10 +134,6 @@ onMounted(() => {
 
 .connect-hint a {
   color: #60a5fa;
-}
-
-.header-actions {
-  grid-column: 1 / -1;
 }
 
 .btn-refresh {
@@ -118,18 +146,25 @@ onMounted(() => {
   cursor: pointer;
 }
 
-.btn-refresh:hover {
+.btn-refresh:hover:not(:disabled) {
   background: rgba(59, 130, 246, 0.3);
 }
 
+.btn-refresh:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.btn-refresh--loading .btn-refresh-text {
+  opacity: 0.9;
+}
+
 .loading {
-  grid-column: 1 / -1;
   font-size: 13px;
   color: #9ca3af;
 }
 
 .error {
-  grid-column: 1 / -1;
   font-size: 13px;
   color: #f87171;
 }
@@ -160,6 +195,15 @@ onMounted(() => {
 .column-body {
   padding: 10px 11px 12px;
   overflow: auto;
+}
+
+.column--minified .column-body {
+  padding: 6px 11px 8px;
+}
+
+.column--minified .empty {
+  font-size: 11px;
+  padding: 0;
 }
 
 .issue-list {
