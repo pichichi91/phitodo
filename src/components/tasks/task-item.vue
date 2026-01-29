@@ -88,11 +88,11 @@ const handleDblClick = () => {
 
 .checkbox {
   flex-shrink: 0;
-  width: 16px;
-  height: 16px;
-  margin-top: 2px;
-  border: 2px solid rgba(148, 163, 184, 0.8);
-  border-radius: 4px;
+  width: 12px;
+  height: 12px;
+  margin-top: 3px;
+  border: 1.5px solid rgba(148, 163, 184, 0.8);
+  border-radius: 3px;
   background: transparent;
   transition: background-color 0.15s, border-color 0.15s;
   position: relative;
@@ -106,17 +106,18 @@ const handleDblClick = () => {
 .checkbox-checked::after {
   content: "";
   position: absolute;
-  left: 5px;
-  top: 2px;
-  width: 4px;
-  height: 8px;
+  left: 3.5px;
+  top: 1px;
+  width: 3px;
+  height: 6px;
   border: solid white;
-  border-width: 0 2px 2px 0;
+  border-width: 0 1.5px 1.5px 0;
   transform: rotate(45deg);
 }
 
 .item-text {
   flex: 1;
+  padding-top: 2px;
 }
 
 .title {
