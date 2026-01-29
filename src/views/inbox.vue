@@ -83,6 +83,47 @@
           </template>
         </template>
       </section>
+      <section v-if="toggl.token" class="toggl-section">
+        <div v-if="toggl.loading" class="toggl-block">
+          <header class="column-header">Toggl today</header>
+          <div class="column-body">
+            <p class="toggl-skeleton">Loading…</p>
+          </div>
+        </div>
+        <div v-else-if="toggl.error" class="toggl-block toggl-error-block">
+          <header class="column-header">Toggl today</header>
+          <div class="column-body">
+            <p class="toggl-error">{{ toggl.error }}</p>
+            <p class="toggl-error-actions">
+              <RouterLink to="/settings">Settings</RouterLink>
+              <button type="button" class="link-button" @click="fetchTogglToday">Try again</button>
+            </p>
+          </div>
+        </div>
+        <div v-else class="toggl-block">
+          <header class="column-header">Toggl today</header>
+          <div class="column-body toggl-block-body">
+            <p class="toggl-total">Today: {{ todayFormatted }}</p>
+            <ul v-if="todayProjectSummary.length" class="toggl-summary-list">
+              <li v-for="p in todayProjectSummary" :key="p.projectName" class="toggl-summary-item">
+                <span class="toggl-summary-project">{{ p.projectName }}</span>
+                <span class="toggl-summary-hours">{{ formatTogglDuration(p.totalSeconds) }}</span>
+              </li>
+            </ul>
+            <div class="toggl-block-actions">
+              <button
+                type="button"
+                class="toggl-btn-standup"
+                @click="showStandupModal = true"
+              >
+                Standup report
+              </button>
+              <RouterLink to="/toggl" class="toggl-view-all">View all</RouterLink>
+            </div>
+          </div>
+        </div>
+      </section>
+      <StandupReportModal v-if="showStandupModal" @close="showStandupModal = false" />
       <div class="content-grid">
         <section class="column column-primary">
           <header class="column-header">Capture</header>
@@ -106,14 +147,21 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { RouterLink } from "vue-router";
+import StandupReportModal from "@/components/common/standup-report-modal.vue";
 import TaskList from "@/components/tasks/task-list.vue";
 import { useTaskStore } from "@/stores/taskStore";
 import { useGitHubStore } from "@/stores/githubStore";
+import { useTogglStore } from "@/stores/togglStore";
+import { groupEntriesByProject } from "@/utils/standup-report";
+import { toLocalYYYYMMDD } from "@/utils/date-format";
 
 const taskStore = useTaskStore();
 const github = useGitHubStore();
+const toggl = useTogglStore();
+
+const showStandupModal = ref(false);
 
 const inboxTasks = computed(() => taskStore.inboxTasks);
 
@@ -121,8 +169,38 @@ const MAX_GITHUB_ITEMS = 5;
 const assignedPreview = computed(() => github.filteredAssignedIssues.slice(0, MAX_GITHUB_ITEMS));
 const reviewRequestedPreview = computed(() => github.filteredReviewRequestedPRs.slice(0, MAX_GITHUB_ITEMS));
 
+function formatTogglDuration(seconds: number): string {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  if (h > 0 && m > 0) return `${h}h ${m}m`;
+  if (h > 0) return `${h}h`;
+  if (m > 0) return `${m}m`;
+  return "0m";
+}
+
+const todayFormatted = computed(() => formatTogglDuration(toggl.todayTotalSeconds));
+
+const todayProjectSummary = computed(() => {
+  const todayLocal = toLocalYYYYMMDD(new Date());
+  const todayEntries = toggl.timeEntries.filter(
+    (e) => toLocalYYYYMMDD(new Date(e.start)) === todayLocal && e.duration >= 0
+  );
+  const groups = groupEntriesByProject(todayEntries);
+  return groups.map((g) => ({ projectName: g.projectName, totalSeconds: g.totalSeconds }));
+});
+
+function fetchTogglToday() {
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  toggl.fetchTimeEntries(toLocalYYYYMMDD(yesterday), toLocalYYYYMMDD(tomorrow));
+}
+
 onMounted(() => {
   if (github.token) github.fetchAll();
+  if (toggl.token) fetchTogglToday();
 });
 </script>
 
@@ -130,7 +208,8 @@ onMounted(() => {
 .view-root {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   padding: 12px 16px 0;
 }
 
@@ -151,12 +230,131 @@ onMounted(() => {
   flex-direction: column;
   gap: 14px;
   margin-top: 12px;
-  height: 100%;
+  padding-bottom: 24px;
+  flex: 1;
   min-height: 0;
+  overflow-y: auto;
 }
 
 .github-section {
   flex: 0 0 auto;
+}
+
+.toggl-section {
+  flex: 0 0 auto;
+}
+
+.toggl-block {
+  border-radius: 14px;
+  border: 1px solid rgba(55, 65, 81, 0.85);
+  background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.98));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.toggl-block-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 11px 12px;
+}
+
+.toggl-block-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.toggl-btn-standup {
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  background: rgba(55, 65, 81, 0.5);
+  color: #e5e7eb;
+  border: 1px solid rgba(55, 65, 81, 0.9);
+  cursor: pointer;
+}
+
+.toggl-btn-standup:hover {
+  background: rgba(55, 65, 81, 0.7);
+}
+
+.toggl-total {
+  margin: 0;
+  font-size: 13px;
+  color: #e5e7eb;
+}
+
+.toggl-summary-list {
+  margin: 0;
+  padding: 0 0 0 12px;
+  list-style: none;
+  font-size: 12px;
+}
+
+.toggl-summary-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.toggl-summary-item:last-child {
+  margin-bottom: 0;
+}
+
+.toggl-summary-project {
+  color: #93c5fd;
+  word-break: break-word;
+}
+
+.toggl-summary-hours {
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+.toggl-view-all {
+  font-size: 12px;
+  color: #60a5fa;
+}
+
+.toggl-skeleton {
+  margin: 0;
+  font-size: 12px;
+  color: #9ca3af;
+  padding: 10px 11px 12px;
+}
+
+.toggl-error-block .toggl-error,
+.toggl-error-block .toggl-error-actions {
+  font-size: 12px;
+  margin: 0 0 6px 0;
+}
+
+.toggl-error-block .toggl-error-actions:last-child {
+  margin-bottom: 0;
+}
+
+.toggl-error-block .toggl-error {
+  color: #f87171;
+}
+
+.toggl-error-actions a,
+.toggl-error-actions .link-button {
+  color: #60a5fa;
+  margin-right: 8px;
+}
+
+.toggl-error-actions .link-button {
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: inherit;
 }
 
 .github-blocks-row {

@@ -66,9 +66,13 @@
         <span>GitHub</span>
         <span class="nav-kbd">{{ shortcutHint(8) }}</span>
       </RouterLink>
+      <RouterLink to="/toggl" class="nav-item" active-class="nav-item-active">
+        <span>Toggl</span>
+        <span class="nav-kbd">{{ shortcutHint(9) }}</span>
+      </RouterLink>
       <RouterLink to="/settings" class="nav-item" active-class="nav-item-active">
         <span>Settings</span>
-        <span class="nav-kbd">{{ shortcutHint(9) }}</span>
+        <span class="nav-kbd">{{ shortcutHint(10) }}</span>
       </RouterLink>
     </nav>
   </aside>

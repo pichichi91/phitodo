@@ -9,6 +9,13 @@ export default defineConfig({
     }
   },
   server: {
-    port: 5173
+    port: 5173,
+    proxy: {
+      "/api/toggl": {
+        target: "https://api.track.toggl.com",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/toggl/, "")
+      }
+    }
   }
 });

@@ -81,6 +81,35 @@
         </div>
         <p v-if="github.error" class="hint hint-error">{{ github.error }}</p>
       </section>
+      <section class="group">
+        <h2>Toggl</h2>
+        <p class="hint">
+          Show time entries from Toggl Track. Get your API token from your
+          <a
+            href="https://track.toggl.com/profile"
+            target="_blank"
+            rel="noopener noreferrer"
+            @click="openExternalLink($event, 'https://track.toggl.com/profile')"
+          >Toggl profile</a>.
+        </p>
+        <div class="row">
+          <label class="settings-label">
+            <span class="settings-label-text">Token</span>
+            <input
+              v-model="togglTokenInput"
+              type="password"
+              class="token-input"
+              placeholder="API token"
+              aria-label="Toggl API Token"
+            />
+          </label>
+        </div>
+        <div class="row row-actions">
+          <button type="button" class="btn btn-primary" @click="saveTogglToken">Save</button>
+          <button type="button" class="btn btn-secondary" @click="clearTogglToken">Clear</button>
+        </div>
+        <p v-if="toggl.error" class="hint hint-error">{{ toggl.error }}</p>
+      </section>
     </main>
 
     <AppModal v-if="showTokenHelp" @close="showTokenHelp = false">
@@ -138,9 +167,11 @@ import CustomSelect from "@/components/common/custom-select.vue";
 import { useUIStore } from "@/stores/uiStore";
 import type { ShortcutModifier } from "@/stores/uiStore";
 import { useGitHubStore } from "@/stores/githubStore";
+import { useTogglStore } from "@/stores/togglStore";
 
 const ui = useUIStore();
 const github = useGitHubStore();
+const toggl = useTogglStore();
 
 const showTokenHelp = ref(false);
 
@@ -206,6 +237,24 @@ function saveRepos() {
     .map((s) => s.trim())
     .filter(Boolean);
   github.setAllowedRepos(lines);
+}
+
+const togglTokenInput = ref(toggl.token ?? "");
+watch(
+  () => toggl.token,
+  (t) => {
+    togglTokenInput.value = t ?? "";
+  }
+);
+
+function saveTogglToken() {
+  const value = togglTokenInput.value.trim() || null;
+  toggl.setToken(value);
+}
+
+function clearTogglToken() {
+  togglTokenInput.value = "";
+  toggl.clearToken();
 }
 
 async function openExternalLink(e: MouseEvent, url: string) {
