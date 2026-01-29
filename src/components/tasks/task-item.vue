@@ -1,13 +1,16 @@
 <template>
-  <article class="item-root">
-    <label class="item-main">
-      <input
-        type="checkbox"
+  <article
+    class="item-root"
+    @click="handleClick"
+    @dblclick="handleDblClick"
+  >
+    <div class="item-main">
+      <span
         class="checkbox"
-        :checked="task.status === 'completed'"
-        @change.stop="toggleCompleted"
+        :class="{ 'checkbox-checked': task.status === 'completed' }"
+        aria-hidden="true"
       />
-      <div class="item-text" @dblclick="editTask">
+      <div class="item-text">
         <div class="title">
           {{ task.title }}
         </div>
@@ -20,7 +23,7 @@
           </span>
         </div>
       </div>
-    </label>
+    </div>
   </article>
 </template>
 
@@ -42,11 +45,23 @@ const dueDateLabel = computed(() =>
   props.task.dueDate ? formatDueDateLabel(props.task.dueDate) : ""
 );
 
+let clickTimeout: ReturnType<typeof setTimeout> | null = null;
+
 const editTask = () => {
   ui.startTaskEdit(props.task.id);
 };
 
-const toggleCompleted = () => {
+const handleClick = () => {
+  clearTimeout(clickTimeout ?? undefined);
+  clickTimeout = setTimeout(() => {
+    clickTimeout = null;
+    editTask();
+  }, 250);
+};
+
+const handleDblClick = () => {
+  clearTimeout(clickTimeout ?? undefined);
+  clickTimeout = null;
   tasks.toggleCompleted(props.task.id);
 };
 </script>
@@ -57,6 +72,7 @@ const toggleCompleted = () => {
   border-radius: 10px;
   display: flex;
   align-items: center;
+  cursor: pointer;
 }
 
 .item-root:hover {
@@ -71,7 +87,32 @@ const toggleCompleted = () => {
 }
 
 .checkbox {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
   margin-top: 2px;
+  border: 2px solid rgba(148, 163, 184, 0.8);
+  border-radius: 4px;
+  background: transparent;
+  transition: background-color 0.15s, border-color 0.15s;
+  position: relative;
+}
+
+.checkbox-checked {
+  background: rgba(59, 130, 246, 0.8);
+  border-color: rgba(59, 130, 246, 0.9);
+}
+
+.checkbox-checked::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
 }
 
 .item-text {

@@ -22,9 +22,6 @@
       <RouterLink to="/anytime" class="nav-item" active-class="nav-item-active">
         <span>Anytime</span>
       </RouterLink>
-      <RouterLink to="/someday" class="nav-item" active-class="nav-item-active">
-        <span>Someday</span>
-      </RouterLink>
       <RouterLink to="/completed" class="nav-item" active-class="nav-item-active">
         <span>Completed</span>
       </RouterLink>

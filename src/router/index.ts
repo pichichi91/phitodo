@@ -6,7 +6,6 @@ const routes: RouteRecordRaw[] = [
   { path: "/today", component: () => import("@/views/today.vue") },
   { path: "/upcoming", component: () => import("@/views/upcoming.vue") },
   { path: "/anytime", component: () => import("@/views/anytime.vue") },
-  { path: "/someday", component: () => import("@/views/someday.vue") },
   { path: "/completed", component: () => import("@/views/completed.vue") },
   { path: "/projects/:projectId", component: () => import("@/views/project.vue") },
   { path: "/tags/:tagId", component: () => import("@/views/tag.vue") },
