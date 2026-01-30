@@ -78,6 +78,24 @@ export function formatDurationShort(seconds: number): string {
 }
 
 /**
+ * Returns a short label for a time entry start (ISO string): time only if today, else "Mon 1 14:30".
+ */
+export function formatEntryStart(iso: string): string {
+  const d = new Date(iso);
+  const today = new Date();
+  const todayStr = today.toISOString().slice(0, 10);
+  const dateStr = d.toISOString().slice(0, 10);
+  const timeStr = d.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: false
+  });
+  if (dateStr === todayStr) return timeStr;
+  const shortDate = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return `${shortDate} ${timeStr}`;
+}
+
+/**
  * Returns a short, human-friendly label for a task due date (YYYY-MM-DD or ISO string).
  */
 export function formatDueDateLabel(dueDate: string): string {
