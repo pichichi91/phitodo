@@ -51,7 +51,11 @@ export const useTogglStore = defineStore("toggl", {
     clearToken() {
       this.setToken(null);
     },
-    async fetchTimeEntries(start?: string, end?: string) {
+    async fetchTimeEntries(
+      start?: string,
+      end?: string,
+      options?: { silent?: boolean }
+    ) {
       if (!this.token) {
         this.error = "Configure token in Settings.";
         return;
@@ -62,8 +66,11 @@ export const useTogglStore = defineStore("toggl", {
       const startStr = start ?? toYYYYMMDD(startDate);
       const endStr = end ?? toYYYYMMDD(endDate);
 
-      this.loading = true;
-      this.error = null;
+      const silent = options?.silent === true;
+      if (!silent) {
+        this.loading = true;
+        this.error = null;
+      }
       const timeoutMs = 15000;
       const controller = new AbortController();
       const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
@@ -75,16 +82,27 @@ export const useTogglStore = defineStore("toggl", {
           controller.signal
         );
         window.clearTimeout(timeoutId);
-        this.timeEntries = entries;
-      } catch (e) {
-        if (e instanceof Error) {
-          this.error = e.name === "AbortError" ? "Request timed out. Try again." : e.message;
+        if (silent) {
+          const byId = new Map(this.timeEntries.map((e) => [e.id, e]));
+          for (const e of entries) byId.set(e.id, e);
+          this.timeEntries = [...byId.values()];
         } else {
-          this.error = "Request failed.";
+          this.timeEntries = entries;
         }
-      } finally {
+      } catch (e) {
         window.clearTimeout(timeoutId);
-        this.loading = false;
+        if (!silent) {
+          if (e instanceof Error) {
+            this.error = e.name === "AbortError" ? "Request timed out. Try again." : e.message;
+          } else {
+            this.error = "Request failed.";
+          }
+        }
+        throw e;
+      } finally {
+        if (!silent) {
+          this.loading = false;
+        }
       }
     }
   }

@@ -56,8 +56,14 @@ async function fetchWithAuth(
     }
   });
   if (!res.ok) {
-    const msg =
-      res.status === 403 ? "Invalid token. Check Settings." : `Request failed: ${res.status}`;
+    let msg: string;
+    if (res.status === 402) {
+      msg = "Request limit reached. Try again later.";
+    } else if (res.status === 403) {
+      msg = "Invalid token. Check Settings.";
+    } else {
+      msg = `Request failed: ${res.status}`;
+    }
     throw new Error(msg);
   }
   return res;

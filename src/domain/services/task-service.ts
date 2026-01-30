@@ -15,11 +15,15 @@ export const createEmptyTask = (title: string): Task => {
   };
 };
 
-export const updateTaskStatus = (task: Task, status: TaskStatus): Task => ({
-  ...task,
-  status,
-  updatedAt: new Date().toISOString()
-});
+export const updateTaskStatus = (task: Task, status: TaskStatus): Task => {
+  const now = new Date().toISOString();
+  return {
+    ...task,
+    status,
+    updatedAt: now,
+    completedAt: status === "completed" ? now : undefined
+  };
+};
 
 export const updateTaskPriority = (task: Task, priority: TaskPriority): Task => ({
   ...task,

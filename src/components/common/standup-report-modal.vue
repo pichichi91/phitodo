@@ -2,6 +2,7 @@
   <AppModal @close="emit('close')">
     <template #title>Standup report</template>
     <div class="standup-modal-body">
+      <p v-if="standupError" class="standup-error">{{ standupError }}</p>
       <div class="standup-range-row">
         <label class="standup-range-label">
           <span class="standup-range-text">Last</span>
@@ -44,6 +45,7 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
 import AppModal from "@/components/common/app-modal.vue";
+import { fetchTimeEntries as fetchTimeEntriesApi } from "@/domain/services/toggl-service";
 import { useTogglStore } from "@/stores/togglStore";
 import { toLocalYYYYMMDD } from "@/utils/date-format";
 import {
@@ -59,13 +61,16 @@ const toggl = useTogglStore();
 const standupDays = ref(1);
 const standupMarkdown = ref("");
 const standupCopied = ref(false);
+const standupError = ref<string | null>(null);
+/** Entries fetched only for the modal; never written to the store so inbox "Toggl today" stays intact. */
+const standupEntries = ref<Awaited<ReturnType<typeof fetchTimeEntriesApi>>>([]);
 
 function rebuildStandupMarkdown() {
   const raw = Number(standupDays.value);
   const days = Number.isFinite(raw) ? Math.max(1, Math.min(31, raw)) : 1;
   if (days !== standupDays.value) standupDays.value = days;
   const { start, end } = getStandupDateRange(days);
-  const entriesInRange = toggl.timeEntries.filter((e) => {
+  const entriesInRange = standupEntries.value.filter((e) => {
     const entryDate = toLocalYYYYMMDD(new Date(e.start));
     return entryDate >= start && entryDate <= end;
   });
@@ -76,9 +81,22 @@ function rebuildStandupMarkdown() {
 async function openAndPrepare() {
   standupDays.value = 1;
   standupCopied.value = false;
+  standupError.value = null;
+  standupEntries.value = [];
+  const token = toggl.token;
+  if (!token) {
+    standupError.value = "Configure token in Settings.";
+    return;
+  }
   const { start, end } = getStandupDateRange(14);
-  await toggl.fetchTimeEntries(start, end);
-  rebuildStandupMarkdown();
+  try {
+    const entries = await fetchTimeEntriesApi(token, start, end);
+    standupEntries.value = entries;
+    rebuildStandupMarkdown();
+  } catch (e) {
+    standupError.value =
+      e instanceof Error ? e.message : "Request failed.";
+  }
 }
 
 async function copyToClipboard() {
@@ -110,6 +128,12 @@ watch(standupDays, () => {
   min-height: 0;
   max-height: 70vh;
   overflow: hidden;
+}
+
+.standup-error {
+  margin: 0;
+  font-size: 12px;
+  color: #f87171;
 }
 
 .standup-report-row {

@@ -57,6 +57,10 @@
           <RouterLink to="/settings">Check Settings</RouterLink>
         </p>
         <template v-else>
+          <div class="stats-grid">
+            <DurationByDayChart :data="durationByDay" />
+            <ProjectDistributionChart :data="projectDistribution" />
+          </div>
           <section class="column">
             <header class="column-header">Time entries</header>
             <div class="column-body">
@@ -104,11 +108,13 @@ import { RouterLink } from "vue-router";
 import StandupReportModal from "@/components/common/standup-report-modal.vue";
 import type { TogglTimeEntry } from "@/domain/services/toggl-service";
 import { useTogglStore } from "@/stores/togglStore";
-import { toLocalYYYYMMDD } from "@/utils/date-format";
+import { toLocalYYYYMMDD, formatDayLabel, getDaysInRange } from "@/utils/date-format";
+import DurationByDayChart from "@/components/charts/duration-by-day-chart.vue";
+import ProjectDistributionChart from "@/components/charts/project-distribution-chart.vue";
 
 const toggl = useTogglStore();
 
-const rangeKey = ref<"today" | "week" | "last7" | "custom">("last7");
+const rangeKey = ref<"today" | "week" | "last7" | "custom">("week");
 
 function defaultCustomRange() {
   const end = new Date();
@@ -229,6 +235,33 @@ const rangeDates = computed(() => {
     startStr = start.toISOString().slice(0, 10);
   }
   return { start: startStr, end: endStr };
+});
+
+const durationByDay = computed(() => {
+  const { start, end } = rangeDates.value;
+  const days = getDaysInRange(start, end);
+  const entries = toggl.timeEntries.filter((e) => e.duration >= 0);
+  return days.map((date) => {
+    const totalSeconds = entries
+      .filter((e) => toLocalYYYYMMDD(new Date(e.start)) === date)
+      .reduce((sum, e) => sum + e.duration, 0);
+    return {
+      date,
+      label: formatDayLabel(date),
+      totalSeconds
+    };
+  });
+});
+
+const projectDistribution = computed(() => {
+  const groups = groupedByProject.value;
+  const totalSeconds = groups.reduce((s, g) => s + g.totalSeconds, 0);
+  if (totalSeconds === 0) return [];
+  return groups.map((g) => ({
+    projectName: g.projectName,
+    totalSeconds: g.totalSeconds,
+    percentage: (g.totalSeconds / totalSeconds) * 100
+  }));
 });
 
 function refresh() {
@@ -427,6 +460,19 @@ onMounted(() => {
   margin-top: 12px;
   padding-bottom: 24px;
   overflow-y: auto;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+@media (max-width: 640px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .connect-hint {

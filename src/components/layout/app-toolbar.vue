@@ -67,7 +67,7 @@ watch(
   align-items: center;
   padding: 10px 20px;
   gap: 12px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.3);
   background: transparent;
   backdrop-filter: blur(12px);
 }
