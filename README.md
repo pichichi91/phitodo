@@ -98,6 +98,12 @@ Artifacts are generated in `src-tauri/target/release/` (and `bundle/` for the `.
 
 ---
 
+## Security
+
+GitHub and Toggl tokens are stored in app storage (plaintext). The app does not send your data to third parties except when you configure those integrations. For details, minimal-scope recommendations, and how to report vulnerabilities, see [SECURITY.md](SECURITY.md).
+
+---
+
 ## Project structure
 
 - **`src/`** — Vue 3 app: views, components, Pinia stores, domain services, router

@@ -61,7 +61,7 @@
                   <div class="github-block-list">
 <ul v-if="github.filteredAssignedIssues.length" class="github-list">
                     <li v-for="item in assignedPreview" :key="item.id" class="github-row">
-                        <a :href="item.html_url" target="_blank" rel="noopener noreferrer" class="github-link">
+                        <a :href="getSafeHref(item.html_url) ?? '#'" target="_blank" rel="noopener noreferrer" class="github-link">
                           <span class="github-repo">{{ item.repository?.full_name ?? "Unknown" }}</span>
                           #{{ item.number }} {{ item.title }}
                         </a>
@@ -78,7 +78,7 @@
                   <div class="github-block-list">
 <ul v-if="github.filteredReviewRequestedPRs.length" class="github-list">
                     <li v-for="item in reviewRequestedPreview" :key="item.id" class="github-row">
-                        <a :href="item.html_url" target="_blank" rel="noopener noreferrer" class="github-link">
+                        <a :href="getSafeHref(item.html_url) ?? '#'" target="_blank" rel="noopener noreferrer" class="github-link">
                           <span class="github-repo">{{ item.repository?.full_name ?? "Unknown" }}</span>
                           #{{ item.number }} {{ item.title }}
                         </a>
@@ -193,6 +193,7 @@ import { useGitHubStore } from "@/stores/githubStore";
 import { useTogglStore } from "@/stores/togglStore";
 import { groupEntriesByProject } from "@/utils/standup-report";
 import { toLocalYYYYMMDD, getWeekStartEnd, getDaysInRange, formatDayLabel } from "@/utils/date-format";
+import { getSafeHref } from "@/utils/safe-url";
 import TasksByDayChart from "@/components/charts/tasks-by-day-chart.vue";
 
 const taskStore = useTaskStore();

@@ -40,9 +40,16 @@
             <template v-if="task.contextUrl">
               <dt>Context</dt>
               <dd>
-                <a :href="task.contextUrl" target="_blank" rel="noopener noreferrer" class="context-link">
+                <a
+                  v-if="safeContextHref"
+                  :href="safeContextHref"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="context-link"
+                >
                   {{ task.contextUrl }}
                 </a>
+                <span v-else class="context-link context-link-plain">{{ task.contextUrl }}</span>
               </dd>
             </template>
           </dl>
@@ -73,6 +80,7 @@ import { useUIStore } from "@/stores/uiStore";
 import { useTagStore } from "@/stores/tagStore";
 import { formatDueDateLabel } from "@/utils/date-format";
 import { sanitizeHtml } from "@/utils/sanitize-html";
+import { getSafeHref } from "@/utils/safe-url";
 
 const taskStore = useTaskStore();
 const ui = useUIStore();
@@ -98,6 +106,8 @@ const taskTags = computed(() => {
 const sanitizedNotes = computed(() =>
   task.value?.notes ? sanitizeHtml(task.value.notes) : ""
 );
+
+const safeContextHref = computed(() => getSafeHref(task.value?.contextUrl));
 
 const metadataEntries = computed(() => {
   const meta = task.value?.metadata;
@@ -238,6 +248,11 @@ function onEdit() {
 
 .context-link:hover {
   color: #bfdbfe;
+}
+
+.context-link-plain {
+  text-decoration: none;
+  cursor: default;
 }
 
 .description-section,

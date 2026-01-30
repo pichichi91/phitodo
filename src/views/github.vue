@@ -44,7 +44,7 @@
               <div class="column-body">
                 <ul v-if="searchReviewPRs.length" class="issue-list">
                   <li v-for="item in searchReviewPRs" :key="item.id" class="issue-row">
-                    <a :href="item.html_url" target="_blank" rel="noopener noreferrer" class="issue-link">
+                    <a :href="getSafeHref(item.html_url) ?? '#'" target="_blank" rel="noopener noreferrer" class="issue-link">
                       <span class="issue-repo">{{ item.repository?.full_name ?? "Unknown" }}</span>
                       <span class="issue-num">#{{ item.number }}</span>
                       <span class="issue-title">{{ item.title }}</span>
@@ -59,7 +59,7 @@
               <div class="column-body">
                 <ul v-if="searchMyOpenPRs.length" class="issue-list">
                   <li v-for="item in searchMyOpenPRs" :key="item.id" class="issue-row">
-                    <a :href="item.html_url" target="_blank" rel="noopener noreferrer" class="issue-link">
+                    <a :href="getSafeHref(item.html_url) ?? '#'" target="_blank" rel="noopener noreferrer" class="issue-link">
                       <span class="issue-repo">{{ item.repository?.full_name ?? "Unknown" }}</span>
                       <span class="issue-num">#{{ item.number }}</span>
                       <span class="issue-title">{{ item.title }}</span>
@@ -74,7 +74,7 @@
               <div class="column-body">
                 <ul v-if="searchAssignedIssues.length" class="issue-list">
                   <li v-for="item in searchAssignedIssues" :key="item.id" class="issue-row">
-                    <a :href="item.html_url" target="_blank" rel="noopener noreferrer" class="issue-link">
+                    <a :href="getSafeHref(item.html_url) ?? '#'" target="_blank" rel="noopener noreferrer" class="issue-link">
                       <span class="issue-repo">{{ item.repository?.full_name ?? "Unknown" }}</span>
                       <span class="issue-num">#{{ item.number }}</span>
                       <span class="issue-title">{{ item.title }}</span>
@@ -96,6 +96,7 @@ import { computed, onMounted, ref } from "vue";
 import { RouterLink } from "vue-router";
 import type { GitHubIssueItem } from "@/domain/services/github-service";
 import { useGitHubStore } from "@/stores/githubStore";
+import { getSafeHref } from "@/utils/safe-url";
 
 const github = useGitHubStore();
 const searchQuery = ref("");
