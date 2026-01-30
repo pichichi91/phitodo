@@ -90,18 +90,30 @@ export function useInboxView() {
     }));
   });
 
-  function fetchTogglToday() {
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    const tomorrow = new Date(today);
+  const thisWeekProjectSummary = computed(() => {
+    const { start, end } = weekBounds.value;
+    const weekEntries = toggl.timeEntries.filter((e) => {
+      if (e.duration < 0) return false;
+      const date = toLocalYYYYMMDD(new Date(e.start));
+      return date >= start && date <= end;
+    });
+    const groups = groupEntriesByProject(weekEntries);
+    return groups.map((g) => ({
+      projectName: g.projectName,
+      totalSeconds: g.totalSeconds
+    }));
+  });
+
+  function fetchTogglForInbox() {
+    const { start } = weekBounds.value;
+    const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    toggl.fetchTimeEntries(toLocalYYYYMMDD(yesterday), toLocalYYYYMMDD(tomorrow));
+    toggl.fetchTimeEntries(start, toLocalYYYYMMDD(tomorrow));
   }
 
   onMounted(() => {
     if (github.token) github.fetchAll();
-    if (toggl.token) fetchTogglToday();
+    if (toggl.token) fetchTogglForInbox();
   });
 
   return {
@@ -120,7 +132,8 @@ export function useInboxView() {
     todayFormatted,
     todayBarWidth,
     todayProjectSummary,
-    fetchTogglToday,
+    thisWeekProjectSummary,
+    fetchTogglForInbox,
     formatDuration
   };
 }

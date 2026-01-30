@@ -16,6 +16,16 @@
           </template>
           <template v-else>
             <p class="toggl-block__total">{{ formatDuration(thisWeekSeconds) }}</p>
+            <ul v-if="thisWeekProjectSummary.length" class="toggl-block__summary-list">
+              <li
+                v-for="p in thisWeekProjectSummary"
+                :key="p.projectName"
+                class="toggl-block__summary-item"
+              >
+                <span class="toggl-block__summary-project">{{ p.projectName }}</span>
+                <span class="toggl-block__summary-hours">{{ formatDuration(p.totalSeconds) }}</span>
+              </li>
+            </ul>
           </template>
         </div>
       </div>
@@ -82,6 +92,7 @@ import { formatDuration } from "@/utils/standup-report";
 
 defineProps<{
   thisWeekSeconds: number;
+  thisWeekProjectSummary: { projectName: string; totalSeconds: number }[];
   todayFormatted: string;
   todayBarWidth: string;
   todayProjectSummary: { projectName: string; totalSeconds: number }[];

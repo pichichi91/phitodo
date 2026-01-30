@@ -31,12 +31,13 @@
       <InboxTogglBlock
         v-if="toggl.token"
         :this-week-seconds="togglThisWeekSeconds"
+        :this-week-project-summary="thisWeekProjectSummary"
         :today-formatted="todayFormatted"
         :today-bar-width="todayBarWidth"
         :today-project-summary="todayProjectSummary"
         :loading="toggl.loading"
         :error="toggl.error"
-        @retry="fetchTogglToday"
+        @retry="fetchTogglForInbox"
         @open-standup="showStandupModal = true"
       />
       <StandupReportModal v-if="showStandupModal" @close="showStandupModal = false" />
@@ -74,10 +75,11 @@ const {
   completedTodayCount,
   completedThisWeekByDay,
   togglThisWeekSeconds,
+  thisWeekProjectSummary,
   todayFormatted,
   todayBarWidth,
   todayProjectSummary,
-  fetchTogglToday
+  fetchTogglForInbox
 } = useInboxView();
 </script>
 
