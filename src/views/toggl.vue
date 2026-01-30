@@ -6,12 +6,13 @@
         <p>Time entries from Toggl Track.</p>
       </div>
       <div v-if="toggl.token" class="header-actions">
-        <select v-model="rangeKey" class="range-select" aria-label="Date range">
-          <option value="today">Today</option>
-          <option value="week">This week</option>
-          <option value="last7">Last 7 days</option>
-          <option value="custom">Custom</option>
-        </select>
+        <div class="range-select-wrap">
+          <CustomSelect
+            v-model="rangeKey"
+            :options="rangeOptions"
+            aria-label="Date range"
+          />
+        </div>
         <template v-if="rangeKey === 'custom'">
           <label class="date-label">
             <span class="date-label-text">From</span>
@@ -111,8 +112,16 @@ import { useTogglStore } from "@/stores/togglStore";
 import { toLocalYYYYMMDD, formatDayLabel, getDaysInRange } from "@/utils/date-format";
 import DurationByDayChart from "@/components/charts/duration-by-day-chart.vue";
 import ProjectDistributionChart from "@/components/charts/project-distribution-chart.vue";
+import CustomSelect from "@/components/common/custom-select.vue";
 
 const toggl = useTogglStore();
+
+const rangeOptions = [
+  { value: "today", label: "Today" },
+  { value: "week", label: "This week" },
+  { value: "last7", label: "Last 7 days" },
+  { value: "custom", label: "Custom" }
+];
 
 const rangeKey = ref<"today" | "week" | "last7" | "custom">("week");
 
@@ -419,14 +428,9 @@ onMounted(() => {
   gap: 8px;
 }
 
-.range-select {
-  padding: 6px 10px;
-  border-radius: 6px;
-  border: 1px solid rgba(55, 65, 81, 0.9);
-  background: rgba(15, 23, 42, 0.98);
-  color: #e5e7eb;
-  font-size: 13px;
-  cursor: pointer;
+.range-select-wrap {
+  min-width: 140px;
+  width: 160px;
 }
 
 .date-label {
