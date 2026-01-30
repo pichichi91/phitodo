@@ -32,7 +32,7 @@
               >
                 <div class="item-content">
                   <div class="item-title">{{ task.title }}</div>
-                  <div v-if="task.notes" class="item-subtitle">{{ task.notes }}</div>
+                  <div v-if="taskNotesPreview(task)" class="item-subtitle">{{ taskNotesPreview(task) }}</div>
                   <div class="item-meta">
                     <span v-if="task.projectId" class="meta-badge">Project</span>
                     <span v-if="task.dueDate" class="meta-badge">Due {{ task.dueDate }}</span>
@@ -88,6 +88,7 @@ import { useProjectStore } from "@/stores/projectStore";
 import { useTagStore } from "@/stores/tagStore";
 import { useUIStore } from "@/stores/uiStore";
 import type { Task, Project, Tag } from "@/domain/models";
+import { stripHtmlToText } from "@/utils/sanitize-html";
 
 const router = useRouter();
 const taskStore = useTaskStore();
@@ -137,6 +138,13 @@ const hasResults = computed(() => {
   return matchedTasks.value.length > 0 || matchedProjects.value.length > 0 || matchedTags.value.length > 0;
 });
 
+function taskNotesPreview(task: Task): string {
+  const notes = task.notes;
+  if (!notes) return "";
+  const text = stripHtmlToText(notes);
+  return text.length > 80 ? text.slice(0, 80) + "…" : text;
+}
+
 const close = () => {
   ui.setSearchQuery("");
 };
@@ -149,6 +157,7 @@ const navigateToTask = (task: Task) => {
   } else {
     router.push("/inbox");
   }
+  ui.openTaskDetail(task.id);
   close();
 };
 

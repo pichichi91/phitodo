@@ -21,6 +21,15 @@
           <span v-if="task.priority !== 'none'" class="pill pill-priority">
             {{ task.priority }}
           </span>
+          <span v-if="task.kind && task.kind !== 'task'" class="pill pill-kind">
+            {{ task.kind }}
+          </span>
+          <span v-if="task.size" class="pill pill-size">
+            {{ task.size }}
+          </span>
+          <span v-if="task.assignee" class="pill pill-assignee">
+            {{ task.assignee }}
+          </span>
         </div>
       </div>
     </div>
@@ -47,15 +56,11 @@ const dueDateLabel = computed(() =>
 
 let clickTimeout: ReturnType<typeof setTimeout> | null = null;
 
-const editTask = () => {
-  ui.startTaskEdit(props.task.id);
-};
-
 const handleClick = () => {
   clearTimeout(clickTimeout ?? undefined);
   clickTimeout = setTimeout(() => {
     clickTimeout = null;
-    editTask();
+    ui.openTaskDetail(props.task.id);
   }, 250);
 };
 
@@ -145,5 +150,20 @@ const handleDblClick = () => {
 .pill-priority {
   color: #22c55e;
   border-color: rgba(34, 197, 94, 0.6);
+}
+
+.pill-kind {
+  color: #a78bfa;
+  border-color: rgba(167, 139, 250, 0.6);
+}
+
+.pill-size {
+  color: #94a3b8;
+  border-color: rgba(148, 163, 184, 0.6);
+}
+
+.pill-assignee {
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.6);
 }
 </style>

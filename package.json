@@ -13,12 +13,18 @@
   },
   "dependencies": {
     "@tauri-apps/plugin-opener": "^2.5.3",
+    "@tiptap/extension-link": "^2.10.0",
+    "@tiptap/pm": "^2.10.0",
+    "@tiptap/starter-kit": "^2.10.0",
+    "@tiptap/vue-3": "^2.10.0",
     "chart.js": "^4.5.1",
+    "dompurify": "^3.2.0",
     "pinia": "^2.1.7",
     "vue": "^3.4.0",
     "vue-router": "^4.3.0"
   },
   "devDependencies": {
+    "@types/dompurify": "^3.0.5",
     "@tauri-apps/api": "2.0.0",
     "@tauri-apps/cli": "2.0.0",
     "@vitejs/plugin-vue": "^5.0.0",

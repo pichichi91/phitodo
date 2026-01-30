@@ -9,6 +9,7 @@ interface UIState {
   isProjectModalOpen: boolean;
   editingTaskId: string | null;
   editingProjectId: string | null;
+  viewingTaskId: string | null;
   searchQuery: string;
   requestSearchFocus: number;
   shortcutModifier: ShortcutModifier;
@@ -22,6 +23,7 @@ export const useUIStore = defineStore("ui", {
     isProjectModalOpen: false,
     editingTaskId: null,
     editingProjectId: null,
+    viewingTaskId: null,
     searchQuery: "",
     requestSearchFocus: 0,
     shortcutModifier: "alt"
@@ -66,6 +68,12 @@ export const useUIStore = defineStore("ui", {
     stopTaskEdit() {
       this.editingTaskId = null;
       this.isTaskModalOpen = false;
+    },
+    openTaskDetail(id: string) {
+      this.viewingTaskId = id;
+    },
+    closeTaskDetail() {
+      this.viewingTaskId = null;
     },
     startProjectEdit(id: string) {
       this.editingProjectId = id;

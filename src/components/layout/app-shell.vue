@@ -11,6 +11,7 @@
       </div>
     </div>
     <TaskCreateModal v-if="ui.isTaskModalOpen" />
+    <TaskDetailPanel v-if="ui.viewingTaskId" />
     <ProjectCreateModal v-if="ui.isProjectModalOpen" />
     <SearchModal />
   </div>
@@ -24,6 +25,7 @@ import AppSidebar from "./app-sidebar.vue";
 import AppToolbar from "./app-toolbar.vue";
 import CustomTitleBar from "./custom-title-bar.vue";
 import TaskCreateModal from "@/components/tasks/task-create-modal.vue";
+import TaskDetailPanel from "@/components/tasks/task-detail-panel.vue";
 import ProjectCreateModal from "@/components/projects/project-create-modal.vue";
 import SearchModal from "@/components/common/search-modal.vue";
 import { useUIStore } from "@/stores/uiStore";

@@ -8,6 +8,7 @@ export const createEmptyTask = (title: string): Task => {
     createdAt: now,
     updatedAt: now,
     priority: "none",
+    kind: "task",
     tags: [],
     status: "inbox",
     reminders: [],

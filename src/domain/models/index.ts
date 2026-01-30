@@ -1,6 +1,8 @@
 // Task
 export type TaskStatus = "inbox" | "active" | "scheduled" | "completed" | "cancelled";
 export type TaskPriority = "none" | "low" | "medium" | "high";
+export type TaskKind = "task" | "bug" | "feature" | "chore";
+export type TaskSize = "xs" | "s" | "m" | "l";
 
 export interface Reminder {
   id: string;
@@ -31,6 +33,11 @@ export interface Task {
   reminders: Reminder[];
   orderIndex: number;
   deleted?: boolean;
+  kind?: TaskKind;
+  size?: TaskSize;
+  assignee?: string;
+  contextUrl?: string;
+  metadata?: Record<string, string>;
 }
 
 // Project
@@ -78,6 +85,9 @@ export interface ViewCriteria {
     to?: string;
   };
   priorities?: string[];
+  kinds?: TaskKind[];
+  sizes?: TaskSize[];
+  assignee?: string;
 }
 
 export interface ViewPreset {

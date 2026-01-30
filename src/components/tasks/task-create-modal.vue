@@ -112,13 +112,107 @@
           </Transition>
         </div>
       </label>
+      <details class="field-group">
+        <summary class="field-group-summary">More</summary>
+        <div class="field-group-inner">
+          <label class="field">
+            <span class="label">Kind</span>
+            <CustomSelect
+              v-model="selectedKind"
+              :options="kindOptions"
+              aria-label="Kind"
+            />
+          </label>
+          <label class="field">
+            <span class="label">Size</span>
+            <CustomSelect
+              v-model="selectedSize"
+              :options="sizeOptions"
+              aria-label="Size"
+            />
+          </label>
+          <label class="field">
+            <span class="label">Priority</span>
+            <CustomSelect
+              v-model="selectedPriority"
+              :options="priorityOptions"
+              aria-label="Priority"
+            />
+          </label>
+          <label class="field">
+            <span class="label">Assignee</span>
+            <input
+              v-model="assignee"
+              type="text"
+              placeholder="Optional"
+            />
+          </label>
+          <label class="field">
+            <span class="label">Context URL</span>
+            <input
+              v-model="contextUrl"
+              type="url"
+              placeholder="https://…"
+            />
+          </label>
+          <label class="field">
+            <span class="label">Tags</span>
+            <div class="tag-chips">
+              <label
+                v-for="tag in tagOptions"
+                :key="tag.id"
+                class="tag-chip"
+              >
+                <input
+                  type="checkbox"
+                  :value="tag.id"
+                  :checked="selectedTagIds.includes(tag.id)"
+                  @change="toggleTag(tag.id)"
+                />
+                <span>{{ tag.name }}</span>
+              </label>
+              <span v-if="!tagOptions.length" class="tag-chip-empty">No tags yet</span>
+            </div>
+          </label>
+          <label class="field">
+            <span class="label">Metadata</span>
+            <div class="metadata-entries">
+              <div
+                v-for="(entry, idx) in metadataEntries"
+                :key="idx"
+                class="metadata-row"
+              >
+                <input
+                  v-model="entry.key"
+                  type="text"
+                  placeholder="Key"
+                  class="metadata-key"
+                />
+                <input
+                  v-model="entry.value"
+                  type="text"
+                  placeholder="Value"
+                  class="metadata-value"
+                />
+                <button
+                  type="button"
+                  class="metadata-remove"
+                  aria-label="Remove"
+                  @click="removeMetadataEntry(idx)"
+                >
+                  ×
+                </button>
+              </div>
+              <button type="button" class="metadata-add btn ghost" @click="addMetadataEntry">
+                Add key-value
+              </button>
+            </div>
+          </label>
+        </div>
+      </details>
       <label class="field">
-        <span class="label">Notes</span>
-        <textarea
-          v-model="notes"
-          rows="3"
-          placeholder="Optional details"
-        />
+        <span class="label">Description</span>
+        <RichTextEditor v-model="notes" />
       </label>
       <div class="actions">
         <button
@@ -144,14 +238,18 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import AppModal from "@/components/common/app-modal.vue";
 import CustomSelect from "@/components/common/custom-select.vue";
+import RichTextEditor from "@/components/common/rich-text-editor.vue";
+import type { TaskKind, TaskPriority, TaskSize } from "@/domain/models";
 import { useTaskStore } from "@/stores/taskStore";
 import { useUIStore } from "@/stores/uiStore";
 import { createEmptyTask } from "@/domain/services/task-service";
 import { useProjectStore } from "@/stores/projectStore";
+import { useTagStore } from "@/stores/tagStore";
 
 const ui = useUIStore();
 const taskStore = useTaskStore();
 const projectStore = useProjectStore();
+const tagStore = useTagStore();
 const route = useRoute();
 
 const title = ref("");
@@ -159,6 +257,13 @@ const notes = ref("");
 const dueDate = ref("");
 const titleEl = ref<HTMLInputElement | null>(null);
 const selectedProjectId = ref<string>("");
+const selectedKind = ref<TaskKind>("task");
+const selectedSize = ref<string>("");
+const selectedPriority = ref<TaskPriority>("none");
+const assignee = ref("");
+const contextUrl = ref("");
+const selectedTagIds = ref<string[]>([]);
+const metadataEntries = ref<{ key: string; value: string }[]>([]);
 const showCalendar = ref(false);
 const showYearPicker = ref(false);
 const datePickerWrapRef = ref<HTMLElement | null>(null);
@@ -282,21 +387,92 @@ const projectOptions = computed(() => [
   ...projects.value.map((p) => ({ value: p.id, label: p.name }))
 ]);
 
+const kindOptions: { value: TaskKind; label: string }[] = [
+  { value: "task", label: "Task" },
+  { value: "bug", label: "Bug" },
+  { value: "feature", label: "Feature" },
+  { value: "chore", label: "Chore" }
+];
+
+const sizeOptions = [
+  { value: "", label: "—" },
+  { value: "xs", label: "XS" },
+  { value: "s", label: "S" },
+  { value: "m", label: "M" },
+  { value: "l", label: "L" }
+];
+
+const priorityOptions: { value: TaskPriority; label: string }[] = [
+  { value: "none", label: "None" },
+  { value: "low", label: "Low" },
+  { value: "medium", label: "Medium" },
+  { value: "high", label: "High" }
+];
+
+const tagOptions = computed(() => tagStore.allTags);
+
+function toggleTag(tagId: string) {
+  const idx = selectedTagIds.value.indexOf(tagId);
+  if (idx === -1) {
+    selectedTagIds.value = [...selectedTagIds.value, tagId];
+  } else {
+    selectedTagIds.value = selectedTagIds.value.filter((id) => id !== tagId);
+  }
+}
+
+function addMetadataEntry() {
+  metadataEntries.value = [...metadataEntries.value, { key: "", value: "" }];
+}
+
+function removeMetadataEntry(idx: number) {
+  metadataEntries.value = metadataEntries.value.filter((_, i) => i !== idx);
+}
+
+function metadataFromEntries(
+  entries: { key: string; value: string }[]
+): Record<string, string> | undefined {
+  const out: Record<string, string> = {};
+  for (const { key, value } of entries) {
+    const k = key.trim();
+    if (k) out[k] = value.trim();
+  }
+  return Object.keys(out).length ? out : undefined;
+}
+
 const reset = () => {
   title.value = "";
   notes.value = "";
   dueDate.value = "";
   selectedProjectId.value = "";
+  selectedKind.value = "task";
+  selectedSize.value = "";
+  selectedPriority.value = "none";
+  assignee.value = "";
+  contextUrl.value = "";
+  selectedTagIds.value = [];
+  metadataEntries.value = [];
   showCalendar.value = false;
   showYearPicker.value = false;
 };
 
 const loadTaskData = () => {
   if (editingTask.value) {
-    title.value = editingTask.value.title;
-    notes.value = editingTask.value.notes || "";
-    dueDate.value = editingTask.value.dueDate?.slice(0, 10) ?? "";
-    selectedProjectId.value = editingTask.value.projectId || "";
+    const t = editingTask.value;
+    title.value = t.title;
+    notes.value = t.notes || "";
+    dueDate.value = t.dueDate?.slice(0, 10) ?? "";
+    selectedProjectId.value = t.projectId || "";
+    selectedKind.value = t.kind ?? "task";
+    selectedSize.value = t.size ?? "";
+    selectedPriority.value = t.priority ?? "none";
+    assignee.value = t.assignee ?? "";
+    contextUrl.value = t.contextUrl ?? "";
+    selectedTagIds.value = Array.isArray(t.tags) ? [...t.tags] : [];
+    const meta = t.metadata;
+    metadataEntries.value =
+      meta && typeof meta === "object"
+        ? Object.entries(meta).map(([k, v]) => ({ key: k, value: String(v) }))
+        : [];
   } else {
     reset();
   }
@@ -309,22 +485,37 @@ const onClose = () => {
 
 const onSubmit = () => {
   if (!title.value.trim()) return;
-  
+
+  const notesTrimmed = typeof notes.value === "string" ? notes.value.trim() : "";
   if (isEditing.value && editingTask.value) {
     const updated = {
       ...editingTask.value,
       title: title.value.trim(),
-      notes: notes.value.trim() || undefined,
+      notes: notesTrimmed || undefined,
       dueDate: dueDate.value.trim() ? dueDate.value.trim() : undefined,
       projectId: selectedProjectId.value || undefined,
+      kind: selectedKind.value,
+      size: (selectedSize.value || undefined) as TaskSize | undefined,
+      priority: selectedPriority.value,
+      assignee: assignee.value.trim() || undefined,
+      contextUrl: contextUrl.value.trim() || undefined,
+      tags: selectedTagIds.value,
+      metadata: metadataFromEntries(metadataEntries.value),
       updatedAt: new Date().toISOString()
     };
     taskStore.upsertMany([updated]);
   } else {
     const task = createEmptyTask(title.value.trim());
-    task.notes = notes.value.trim() || undefined;
+    task.notes = notesTrimmed || undefined;
     task.dueDate = dueDate.value.trim() || undefined;
     task.projectId = selectedProjectId.value || undefined;
+    task.kind = selectedKind.value;
+    task.size = (selectedSize.value || undefined) as TaskSize | undefined;
+    task.priority = selectedPriority.value;
+    task.assignee = assignee.value.trim() || undefined;
+    task.contextUrl = contextUrl.value.trim() || undefined;
+    task.tags = selectedTagIds.value;
+    task.metadata = metadataFromEntries(metadataEntries.value);
     taskStore.upsertMany([task]);
   }
   onClose();
@@ -392,6 +583,107 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.field-group {
+  border-radius: 10px;
+  border: 1px solid rgba(55, 65, 81, 0.5);
+  background: rgba(31, 41, 55, 0.3);
+}
+
+.field-group-summary {
+  padding: 8px 10px;
+  font-size: 12px;
+  color: #9ca3af;
+  cursor: pointer;
+  list-style: none;
+}
+
+.field-group-summary::-webkit-details-marker {
+  display: none;
+}
+
+.field-group-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 10px 10px;
+}
+
+.tag-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(55, 65, 81, 0.9);
+  background: rgba(15, 23, 42, 0.98);
+  color: #e5e7eb;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.tag-chip input {
+  margin: 0;
+  width: auto;
+  padding: 0;
+}
+
+.tag-chip:has(input:checked) {
+  background: rgba(79, 70, 229, 0.25);
+  border-color: rgba(99, 102, 241, 0.6);
+}
+
+.tag-chip-empty {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.metadata-entries {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.metadata-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.metadata-key,
+.metadata-value {
+  flex: 1;
+  min-width: 0;
+}
+
+.metadata-remove {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid rgba(55, 65, 81, 0.9);
+  border-radius: 6px;
+  background: transparent;
+  color: #9ca3af;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.metadata-remove:hover {
+  background: rgba(55, 65, 81, 0.6);
+  color: #e5e7eb;
+}
+
+.metadata-add {
+  align-self: flex-start;
 }
 
 .label {
