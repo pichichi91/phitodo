@@ -1,52 +1,105 @@
-## phitodo – implementation roadmap
+# phitodo
 
-### Phase 1 – Core Vue app (web only)
+A personal task manager built with **Vue 3** and **Tauri 2**, designed as a native-feeling macOS app. It combines a clean task list with project and tag organization, optional Toggl time tracking, GitHub integration, and local SQLite storage (with future iCloud sync).
 
-- **Goal**: Validate UX, data model, and flows in the browser using simple local storage.
-- **Deliverables**:
-  - Vue 3 app with sidebar, toolbar, and 3‑pane layout.
-  - Screens: `Inbox`, `Today`, `Upcoming`, `Anytime`, `Someday`, `Completed`, `Project`, `Tag`, `Review`, `Settings` (even if some are placeholder lists).
-  - Domain models and services wired into Pinia stores.
-  - Temporary persistence via `localStorage` or IndexedDB (no Tauri involvement yet).
+## Features
 
-### Phase 2 – Tauri macOS app (local storage)
+- **Views**: Inbox, Today, Upcoming, Anytime, Completed, plus Project and Tag views
+- **Tasks**: Rich text descriptions, due dates, reminders, and project/tag assignment
+- **Projects & tags**: Organize tasks with projects and multiple tags
+- **Toggl**: Optional time tracking via Toggl integration and charts
+- **GitHub**: Link tasks to GitHub issues and PRs
+- **Review**: Dedicated review flow for triaging and planning
+- **Desktop**: Native window (vibrancy, custom title bar), SQLite backend, and macOS notifications
 
-- **Goal**: Turn the Vue app into a real macOS desktop app with robust local persistence.
-- **Deliverables**:
-  - Tauri project compiling on macOS with the Vue UI bundled.
-  - SQLite schema (tasks, projects, sections, tags, task_tags, reminders, metadata) created via `db.rs`.
-  - Tauri commands implemented for:
-    - `get_state_snapshot`
-    - `apply_changes`
-    - `export_backup`
-    - `import_backup`
-  - Vue `TauriRepository` replacing the temporary web storage and used by Pinia stores.
+---
 
-### Phase 3 – iCloud‑backed sync
+## Prerequisites
 
-- **Goal**: Keep data synced across Macs using an iCloud Drive snapshot file.
-- **Deliverables**:
-  - Snapshot format defined (mirroring `StateSnapshot` in `sync.rs`).
-  - Rust helpers to read/write the snapshot file under an iCloud Drive path.
-  - Tauri commands:
-    - `icloud_sync_pull`
-    - `icloud_sync_push`
-  - JS `SyncService` that:
-    - Performs pull on startup and periodically.
-    - Pushes local changes after applying a ChangeSet.
-    - Resolves conflicts with `updatedAt` + `deleted` flags.
-  - Basic sync status indicator in the toolbar and a manual “Sync now” button.
+- **Node.js** (v18 or later) and **npm**
+- **Rust** (for Tauri) — install via [rustup](https://rustup.rs/)
+- **macOS** — the app uses macOS-specific APIs (vibrancy, private APIs for window styling)
 
-### Phase 4 – Notifications & desktop polish
+For Tauri development you may also need Xcode Command Line Tools:
 
-- **Goal**: Add reminders and make the app feel deeply macOS‑native.
-- **Deliverables**:
-  - macOS notifications wired to reminders through `notifications.rs` and Tauri commands:
-    - `schedule_notification`
-    - `cancel_notification`
-  - Reminder scheduling integrated into the task detail view.
-  - Keyboard shortcuts for quick add, navigation, and completing tasks.
-  - Optional extras:
-    - Dock badge for today/overdue count.
-    - Quick add window or menubar item.
-    - JSON export/import UX in `Settings`.
+```bash
+xcode-select --install
+```
+
+---
+
+## Setup
+
+Clone the repo and install dependencies:
+
+```bash
+npm install
+```
+
+---
+
+## Running the app
+
+### Web only (browser)
+
+Runs the Vue frontend with Vite; uses in-memory/local storage only:
+
+```bash
+npm run dev
+```
+
+Then open the URL shown in the terminal (usually `http://localhost:5173`).
+
+### Desktop (Tauri)
+
+Runs the full app as a native window with SQLite and Tauri APIs:
+
+```bash
+npm run tauri:dev
+```
+
+This starts the Vite dev server and opens the Tauri window. Use this for normal day-to-day development of the desktop app.
+
+---
+
+## Building
+
+### Web
+
+Build the frontend for production:
+
+```bash
+npm run build
+```
+
+Output is in `dist/`. You can preview it with:
+
+```bash
+npm run preview
+```
+
+### Desktop (Tauri)
+
+Build the macOS app (`.app` and `.dmg`):
+
+```bash
+npm run tauri:build
+```
+
+Artifacts are generated in `src-tauri/target/release/` (and `bundle/` for the `.dmg`).
+
+---
+
+## Other scripts
+
+| Command           | Description                                      |
+|-------------------|--------------------------------------------------|
+| `npm run icon`    | Regenerate app icons from the script/icon source |
+
+---
+
+## Project structure
+
+- **`src/`** — Vue 3 app: views, components, Pinia stores, domain services, router
+- **`src-tauri/`** — Tauri 2 (Rust): main process, SQLite via `db.rs`, sync and notifications
+- **`public/`** — Static assets and icons used by the frontend
