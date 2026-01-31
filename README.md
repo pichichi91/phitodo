@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/icon.svg" alt="phitodo" width="128">
+  <img src="public/icon-transparent.svg" alt="phitodo" width="128">
 </p>
 
 # phitodo
