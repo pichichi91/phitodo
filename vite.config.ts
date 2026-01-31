@@ -10,6 +10,7 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    // We need to proxy the Toggl API because it's on a different domain, and we need to avoid CORS issues.
     proxy: {
       "/api/toggl": {
         target: "https://api.track.toggl.com",
