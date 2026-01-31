@@ -3,6 +3,7 @@ name = "phitodo"
 version = "0.1.0"
 description = "Personal task manager: Vue 3 + Tauri macOS app"
 edition = "2021"
+license = "MIT"
 
 [dependencies]
 tauri = { version = "2.0.0", features = ["macos-private-api"] }

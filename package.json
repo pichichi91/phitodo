@@ -1,6 +1,7 @@
 {
   "name": "phitodo",
   "version": "0.1.0",
+  "license": "MIT",
   "private": true,
   "description": "Personal task manager: phitodo – Vue 3 + Tauri macOS app",
   "scripts": {

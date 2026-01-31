@@ -1,6 +1,6 @@
 # phitodo
 
-A personal task manager built with **Vue 3** and **Tauri 2**, designed as a native-feeling macOS app. It combines a clean task list with project and tag organization, optional Toggl time tracking, GitHub integration, and local SQLite storage (with future iCloud sync).
+This repository contains the source code for **phitodo**, a personal task manager built with **Vue 3** and **Tauri 2**, designed as a native-feeling macOS app. It combines a clean task list with project and tag organization, optional Toggl time tracking, GitHub integration, and local SQLite storage (with future iCloud sync).
 
 ## Features
 

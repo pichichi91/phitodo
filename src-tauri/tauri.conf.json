@@ -1,7 +1,7 @@
 {
   "productName": "phitodo",
   "version": "0.1.0",
-  "identifier": "com.yourcompany.phitodo",
+  "identifier": "com.phitodo.app",
   "bundle": {
     "active": true,
     "targets": ["dmg", "app"],

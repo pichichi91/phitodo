@@ -22,7 +22,7 @@ The app does not send your data to any third party except:
 
 If you find a security vulnerability, please report it responsibly:
 
-- **Preferred:** Open a [GitHub Security Advisory](https://docs.github.com/en/code-security/security-advisories/working-with-repository-security-advisories/creating-a-repository-security-advisory) (Security → Advisories in this repo) or contact the maintainers privately (e.g. via the contact method listed in the repo).
+- **Preferred:** Open a [GitHub Security Advisory](https://docs.github.com/en/code-security/security-advisories/working-with-repository-security-advisories/creating-a-repository-security-advisory) in this repo (go to **Security** → **Advisories** → **Report a vulnerability**). This allows private discussion and coordination.
 - **Do not** open a public issue for unfixed security vulnerabilities.
 
 We will acknowledge reports and work on a fix; we may coordinate disclosure after a patch is available.
