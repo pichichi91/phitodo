@@ -4,10 +4,25 @@ import { fetchTimeEntries } from "@/domain/services/toggl-service";
 import { toLocalYYYYMMDD } from "@/utils/date-format";
 
 const STORAGE_KEY = "phitodo_toggl_token";
+const INBOX_HIDDEN_STORAGE_KEY = "phitodo_toggl_inbox_hidden";
 
 function loadToken(): string | null {
   if (typeof window === "undefined") return null;
   return window.localStorage.getItem(STORAGE_KEY);
+}
+
+function loadInboxHiddenProjects(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(INBOX_HIDDEN_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as unknown;
+    return Array.isArray(parsed)
+      ? parsed.filter((p): p is string => typeof p === "string")
+      : [];
+  } catch {
+    return [];
+  }
 }
 
 function toYYYYMMDD(d: Date): string {
@@ -16,6 +31,7 @@ function toYYYYMMDD(d: Date): string {
 
 interface TogglState {
   token: string | null;
+  inboxHiddenProjectNames: string[];
   timeEntries: TogglTimeEntry[];
   loading: boolean;
   error: string | null;
@@ -24,6 +40,7 @@ interface TogglState {
 export const useTogglStore = defineStore("toggl", {
   state: (): TogglState => ({
     token: loadToken(),
+    inboxHiddenProjectNames: loadInboxHiddenProjects(),
     timeEntries: [],
     loading: false,
     error: null
@@ -50,6 +67,15 @@ export const useTogglStore = defineStore("toggl", {
     },
     clearToken() {
       this.setToken(null);
+    },
+    setInboxHiddenProjectNames(names: string[]) {
+      this.inboxHiddenProjectNames = names;
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(
+          INBOX_HIDDEN_STORAGE_KEY,
+          JSON.stringify(names)
+        );
+      }
     },
     async fetchTimeEntries(
       start?: string,

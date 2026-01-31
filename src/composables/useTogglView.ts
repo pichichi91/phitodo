@@ -8,6 +8,7 @@ import {
 } from "@/utils/date-format";
 import { groupEntriesByProject, formatDuration } from "@/utils/standup-report";
 import type { ProjectGroup } from "@/utils/standup-report";
+import { isHiddenTogglProject } from "@/utils/toggl-filter";
 
 export type RangeKey = "today" | "week" | "last7" | "custom";
 
@@ -74,7 +75,10 @@ export function useTogglView() {
   });
 
   const filteredEntries = computed(() => {
-    const entries = toggl.timeEntries;
+    const hidden = toggl.inboxHiddenProjectNames;
+    const entries = toggl.timeEntries.filter(
+      (e) => !isHiddenTogglProject(e.project_name, hidden)
+    );
     if (rangeKey.value === "today") {
       const todayLocal = toLocalYYYYMMDD(new Date());
       return entries.filter(
@@ -95,7 +99,11 @@ export function useTogglView() {
   const durationByDay = computed(() => {
     const { start, end } = rangeDates.value;
     const days = getDaysInRange(start, end);
-    const entries = toggl.timeEntries.filter((e) => e.duration >= 0);
+    const hidden = toggl.inboxHiddenProjectNames;
+    const entries = toggl.timeEntries.filter(
+      (e) =>
+        e.duration >= 0 && !isHiddenTogglProject(e.project_name, hidden)
+    );
     return days.map((date) => {
       const totalSeconds = entries
         .filter((e) => toLocalYYYYMMDD(new Date(e.start)) === date)

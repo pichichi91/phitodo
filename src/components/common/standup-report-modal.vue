@@ -53,6 +53,7 @@ import {
   getStandupDateRange,
   groupEntriesByProject
 } from "@/utils/standup-report";
+import { isHiddenTogglProject } from "@/utils/toggl-filter";
 
 const emit = defineEmits<{ close: [] }>();
 
@@ -70,7 +71,9 @@ function rebuildStandupMarkdown() {
   const days = Number.isFinite(raw) ? Math.max(1, Math.min(31, raw)) : 1;
   if (days !== standupDays.value) standupDays.value = days;
   const { start, end } = getStandupDateRange(days);
+  const hidden = toggl.inboxHiddenProjectNames;
   const entriesInRange = standupEntries.value.filter((e) => {
+    if (isHiddenTogglProject(e.project_name, hidden)) return false;
     const entryDate = toLocalYYYYMMDD(new Date(e.start));
     return entryDate >= start && entryDate <= end;
   });

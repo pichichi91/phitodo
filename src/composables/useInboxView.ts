@@ -4,6 +4,7 @@ import { useGitHubStore } from "@/stores/githubStore";
 import { useTogglStore } from "@/stores/togglStore";
 import { groupEntriesByProject, formatDuration } from "@/utils/standup-report";
 import { toLocalYYYYMMDD, getWeekStartEnd, getDaysInRange, formatDayLabel } from "@/utils/date-format";
+import { isHiddenTogglProject } from "@/utils/toggl-filter";
 
 const MAX_GITHUB_ITEMS = 5;
 const REFERENCE_HOURS = 8;
@@ -12,6 +13,8 @@ export function useInboxView() {
   const taskStore = useTaskStore();
   const github = useGitHubStore();
   const toggl = useTogglStore();
+
+  const inboxHiddenProjectNames = computed(() => toggl.inboxHiddenProjectNames);
 
   const showStandupModal = ref(false);
   const inboxTasks = computed(() => taskStore.inboxTasks);
@@ -57,20 +60,34 @@ export function useInboxView() {
 
   const togglThisWeekSeconds = computed(() => {
     const { start, end } = weekBounds.value;
+    const hidden = inboxHiddenProjectNames.value;
     return toggl.timeEntries
       .filter((e) => {
+        if (isHiddenTogglProject(e.project_name, hidden)) return false;
         const date = toLocalYYYYMMDD(new Date(e.start));
         return e.duration >= 0 && date >= start && date <= end;
       })
       .reduce((s, e) => s + e.duration, 0);
   });
 
+  const inboxTodayTotalSeconds = computed(() => {
+    const hidden = inboxHiddenProjectNames.value;
+    return toggl.timeEntries
+      .filter(
+        (e) =>
+          toLocalYYYYMMDD(new Date(e.start)) === todayLocal.value &&
+          e.duration >= 0 &&
+          !isHiddenTogglProject(e.project_name, hidden)
+      )
+      .reduce((s, e) => s + e.duration, 0);
+  });
+
   const todayFormatted = computed(() =>
-    formatDuration(toggl.todayTotalSeconds)
+    formatDuration(inboxTodayTotalSeconds.value)
   );
 
   const todayBarWidth = computed(() => {
-    const seconds = toggl.todayTotalSeconds;
+    const seconds = inboxTodayTotalSeconds.value;
     if (seconds <= 0) return "0%";
     const maxSeconds = REFERENCE_HOURS * 3600;
     const pct = Math.min(100, (seconds / maxSeconds) * 100);
@@ -78,10 +95,12 @@ export function useInboxView() {
   });
 
   const todayProjectSummary = computed(() => {
+    const hidden = inboxHiddenProjectNames.value;
     const todayEntries = toggl.timeEntries.filter(
       (e) =>
         toLocalYYYYMMDD(new Date(e.start)) === todayLocal.value &&
-        e.duration >= 0
+        e.duration >= 0 &&
+        !isHiddenTogglProject(e.project_name, hidden)
     );
     const groups = groupEntriesByProject(todayEntries);
     return groups.map((g) => ({
@@ -92,8 +111,9 @@ export function useInboxView() {
 
   const thisWeekProjectSummary = computed(() => {
     const { start, end } = weekBounds.value;
+    const hidden = inboxHiddenProjectNames.value;
     const weekEntries = toggl.timeEntries.filter((e) => {
-      if (e.duration < 0) return false;
+      if (e.duration < 0 || isHiddenTogglProject(e.project_name, hidden)) return false;
       const date = toLocalYYYYMMDD(new Date(e.start));
       return date >= start && date <= end;
     });

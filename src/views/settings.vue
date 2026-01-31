@@ -91,6 +91,22 @@
           <button type="button" class="btn btn-primary" @click="saveTogglToken">Save</button>
           <button type="button" class="btn btn-secondary" @click="clearTogglToken">Clear</button>
         </div>
+        <div class="row">
+          <label class="settings-label settings-label-block">
+            <span class="settings-label-text">Hide Toggl projects</span>
+            <textarea
+              v-model="togglHiddenProjectsInput"
+              class="repos-textarea"
+              placeholder="project name (one per line)"
+              rows="3"
+              aria-label="Toggl project names to hide"
+            />
+          </label>
+          <p class="hint">These projects won’t appear in Toggl views (Inbox, Toggl page, standup report). One project name per line; matching is case-insensitive.</p>
+        </div>
+        <div class="row row-actions">
+          <button type="button" class="btn btn-primary" @click="saveTogglHiddenProjects">Save</button>
+        </div>
         <p v-if="toggl.error" class="hint hint-error">{{ toggl.error }}</p>
       </section>
     </main>
@@ -227,6 +243,23 @@ function saveTogglToken() {
 function clearTogglToken() {
   togglTokenInput.value = "";
   toggl.clearToken();
+}
+
+const togglHiddenProjectsInput = ref(toggl.inboxHiddenProjectNames.join("\n"));
+watch(
+  () => toggl.inboxHiddenProjectNames,
+  (names) => {
+    togglHiddenProjectsInput.value = names.join("\n");
+  },
+  { deep: true }
+);
+
+function saveTogglHiddenProjects() {
+  const lines = togglHiddenProjectsInput.value
+    .split("\n")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  toggl.setInboxHiddenProjectNames(lines);
 }
 
 async function openExternalLink(e: MouseEvent, url: string) {
@@ -390,6 +423,7 @@ async function openExternalLink(e: MouseEvent, url: string) {
 }
 
 .repos-textarea {
+  box-sizing: border-box;
   width: 100%;
   min-height: 80px;
   padding: 8px 10px;
