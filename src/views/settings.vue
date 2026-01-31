@@ -160,115 +160,27 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { ref } from "vue";
 import AppModal from "@/components/common/app-modal.vue";
 import CustomSelect from "@/components/common/custom-select.vue";
-import { useUIStore } from "@/stores/uiStore";
-import type { ShortcutModifier } from "@/stores/uiStore";
-import { useGitHubStore } from "@/stores/githubStore";
-import { useTogglStore } from "@/stores/togglStore";
-
-const ui = useUIStore();
-const github = useGitHubStore();
-const toggl = useTogglStore();
+import { useShortcutSettings } from "@/composables/useShortcutSettings";
+import { useGitHubSettings } from "@/composables/useGitHubSettings";
+import { useTogglSettings } from "@/composables/useTogglSettings";
+import { useExternalLink } from "@/composables/useExternalLink";
 
 const showTokenHelp = ref(false);
 
-const isTauri =
-  typeof window !== "undefined" && !!(window as Window & { __TAURI__?: unknown }).__TAURI__;
-
-const shortcutModifier = computed({
-  get: () => ui.shortcutModifier,
-  set: (value: ShortcutModifier) => ui.setShortcutModifier(value)
-});
-
-const shortcutModifierOptions = computed(() => {
-  const options: { value: ShortcutModifier; label: string }[] = [
-    { value: "alt", label: "Alt" },
-    { value: "ctrl", label: "Ctrl" },
-    { value: "ctrlAlt", label: "Ctrl+Alt" },
-    { value: "meta", label: "Command" }
-  ];
-  return isTauri ? options : options.filter((o) => o.value !== "meta");
-});
-
-const tokenInput = ref(github.token ?? "");
-watch(
-  () => github.token,
-  (t) => {
-    tokenInput.value = t ?? "";
-  }
-);
-
-const reposInput = ref(github.allowedRepos.join("\n"));
-watch(
-  () => github.allowedRepos,
-  (repos) => {
-    reposInput.value = repos.join("\n");
-  },
-  { deep: true }
-);
-
-function saveToken() {
-  const value = tokenInput.value.trim() || null;
-  github.setToken(value);
-}
-
-function clearToken() {
-  tokenInput.value = "";
-  github.clearToken();
-}
-
-function saveRepos() {
-  const lines = reposInput.value
-    .split("\n")
-    .map((s) => s.trim())
-    .filter(Boolean);
-  github.setAllowedRepos(lines);
-}
-
-const togglTokenInput = ref(toggl.token ?? "");
-watch(
-  () => toggl.token,
-  (t) => {
-    togglTokenInput.value = t ?? "";
-  }
-);
-
-function saveTogglToken() {
-  const value = togglTokenInput.value.trim() || null;
-  toggl.setToken(value);
-}
-
-function clearTogglToken() {
-  togglTokenInput.value = "";
-  toggl.clearToken();
-}
-
-const togglHiddenProjectsInput = ref(toggl.inboxHiddenProjectNames.join("\n"));
-watch(
-  () => toggl.inboxHiddenProjectNames,
-  (names) => {
-    togglHiddenProjectsInput.value = names.join("\n");
-  },
-  { deep: true }
-);
-
-function saveTogglHiddenProjects() {
-  const lines = togglHiddenProjectsInput.value
-    .split("\n")
-    .map((s) => s.trim())
-    .filter(Boolean);
-  toggl.setInboxHiddenProjectNames(lines);
-}
-
-async function openExternalLink(e: MouseEvent, url: string) {
-  if (typeof window !== "undefined" && (window as Window & { __TAURI__?: unknown }).__TAURI__) {
-    e.preventDefault();
-    const { openUrl } = await import("@tauri-apps/plugin-opener");
-    await openUrl(url);
-  }
-}
+const { shortcutModifier, shortcutModifierOptions } = useShortcutSettings();
+const { github, tokenInput, reposInput, saveToken, clearToken, saveRepos } = useGitHubSettings();
+const {
+  toggl,
+  tokenInput: togglTokenInput,
+  hiddenProjectsInput: togglHiddenProjectsInput,
+  saveToken: saveTogglToken,
+  clearToken: clearTogglToken,
+  saveHiddenProjects: saveTogglHiddenProjects
+} = useTogglSettings();
+const { openExternalLink } = useExternalLink();
 </script>
 
 <style scoped>

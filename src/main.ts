@@ -4,6 +4,7 @@ import App from "./app.vue";
 import { router } from "./router";
 import { bootstrapPhase1Persistence } from "./bootstrap";
 import { bootstrapTauriPersistence } from "./bootstrap-tauri";
+import { clickOutside } from "./directives/clickOutside";
 
 import "./style.css";
 
@@ -16,6 +17,7 @@ const pinia = createPinia();
 
 app.use(pinia);
 app.use(router);
+app.directive("click-outside", clickOutside);
 
 if (typeof window !== "undefined" && (window as any).__TAURI__) {
   bootstrapTauriPersistence();

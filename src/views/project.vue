@@ -40,87 +40,22 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, onBeforeUnmount } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import { useTaskStore } from "@/stores/taskStore";
-import { useProjectStore } from "@/stores/projectStore";
-import { useUIStore } from "@/stores/uiStore";
+import { useProjectView } from "@/composables/useProjectView";
+import { useDropdownMenu } from "@/composables/useDropdownMenu";
 import TaskList from "@/components/tasks/task-list.vue";
 
-const route = useRoute();
-const router = useRouter();
-const taskStore = useTaskStore();
-const projectStore = useProjectStore();
-const ui = useUIStore();
-
-const isMenuOpen = ref(false);
-
-const projectId = computed(() => String(route.params.projectId));
-
-const project = computed(() =>
-  projectStore.allProjects.find((p) => p.id === projectId.value)
-);
-
-const projectName = computed(() => project.value?.name ?? "Project");
-
-const projectTasks = computed(() =>
-  taskStore.allTasks.filter((t) => t.projectId === projectId.value)
-);
-
-const toggleMenu = () => {
-  isMenuOpen.value = !isMenuOpen.value;
-};
-
-const closeMenu = () => {
-  isMenuOpen.value = false;
-};
+const { project, projectName, projectTasks, handleEdit: editProject, handleDelete: deleteProject } = useProjectView();
+const { isOpen: isMenuOpen, toggle: toggleMenu, close: closeMenu } = useDropdownMenu();
 
 const handleEdit = () => {
-  if (projectId.value) {
-    ui.startProjectEdit(projectId.value);
-  }
+  editProject();
   closeMenu();
 };
 
 const handleDelete = () => {
-  if (projectId.value && project.value) {
-    projectStore.deleteProject(projectId.value);
-    router.push("/inbox");
-  }
+  deleteProject();
   closeMenu();
 };
-
-// Click outside directive
-const vClickOutside = {
-  mounted(el: HTMLElement & { clickOutsideEvent?: (event: MouseEvent) => void }, binding: { value: () => void }) {
-    el.clickOutsideEvent = (event: MouseEvent) => {
-      if (!(el === event.target || el.contains(event.target as Node))) {
-        binding.value();
-      }
-    };
-    document.addEventListener("click", el.clickOutsideEvent);
-  },
-  unmounted(el: HTMLElement & { clickOutsideEvent?: (event: MouseEvent) => void }) {
-    if (el.clickOutsideEvent) {
-      document.removeEventListener("click", el.clickOutsideEvent);
-    }
-  }
-};
-
-// Close menu on escape key
-const handleEscape = (event: KeyboardEvent) => {
-  if (event.key === "Escape") {
-    closeMenu();
-  }
-};
-
-onMounted(() => {
-  document.addEventListener("keydown", handleEscape);
-});
-
-onBeforeUnmount(() => {
-  document.removeEventListener("keydown", handleEscape);
-});
 </script>
 
 <style scoped>
